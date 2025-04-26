@@ -1,4 +1,5 @@
 const { app, BrowserWindow } = require('electron');
+const path = require('path');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -8,13 +9,14 @@ function createWindow() {
     frame: false,
     alwaysOnTop: true,
     skipTaskbar: true,
+    title: "Secure Window 123",  // Unique title for Qt to find
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
+    }
   });
 
-  // Prevent window content from being captured by screen recording or screenshots
   win.setContentProtection(true);
 
   win.loadFile('index.html');
