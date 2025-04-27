@@ -10,6 +10,7 @@ const GeminiAPI = require('./gemini-api');
 let win;
 let visible = true;
 const tempDir = path.join(os.tmpdir(), 'leethelper-temp');
+let settings = null;
 
 // Ensure temp directory exists
 if (!fs.existsSync(tempDir)) {
@@ -111,6 +112,36 @@ async function captureScreenshot() {
   }
 }
 
+// Load settings from disk
+async function loadAppSettings() {
+  try {
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+      const data = fs.readFileSync(settingsPath, 'utf8');
+      settings = JSON.parse(data);
+      return settings;
+    }
+    // Default settings if file doesn't exist
+    settings = {
+      apiKey: '',
+      model: 'gemini-pro-vision',
+      language: 'javascript',
+      theme: 'vs-dark'
+    };
+    return settings;
+  } catch (error) {
+    console.error('Failed to load settings:', error);
+    // Default settings if there's an error
+    settings = {
+      apiKey: '',
+      model: 'gemini-pro-vision',
+      language: 'javascript',
+      theme: 'vs-dark'
+    };
+    return settings;
+  }
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1000, 
@@ -131,7 +162,13 @@ function createWindow() {
   win.setContentProtection(true);
   win.loadFile('index.html');
 
-  win.once('ready-to-show', () => {
+  win.once('ready-to-show', async () => {
+    // Load settings before showing the window
+    await loadAppSettings();
+    
+    // Send the loaded settings to the renderer
+    win.webContents.send('settings-loaded', settings);
+    
     win.show();
     console.log('Window is now visible');
   });
@@ -163,7 +200,7 @@ function registerHotkeys() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   cleanupTempFiles();
   createWindow();
   registerHotkeys();
@@ -204,10 +241,14 @@ ipcMain.handle('analyze-with-llm', async (event, apiKey, model, imagePath, promp
   }
 });
 
-ipcMain.handle('save-settings', async (event, settings) => {
+ipcMain.handle('save-settings', async (event, newSettings) => {
   try {
     const settingsPath = path.join(app.getPath('userData'), 'settings.json');
-    await writeFile(settingsPath, JSON.stringify(settings, null, 2));
+    await writeFile(settingsPath, JSON.stringify(newSettings, null, 2));
+    
+    // Update our local settings
+    settings = newSettings;
+    
     return true;
   } catch (error) {
     console.error('Failed to save settings:', error);
@@ -216,27 +257,11 @@ ipcMain.handle('save-settings', async (event, settings) => {
 });
 
 ipcMain.handle('load-settings', async () => {
-  try {
-    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
-    if (fs.existsSync(settingsPath)) {
-      const data = fs.readFileSync(settingsPath, 'utf8');
-      return JSON.parse(data);
-    }
-    return {
-      apiKey: '',
-      model: 'gemini-pro-vision',
-      language: 'javascript',
-      theme: 'vs-dark'
-    };
-  } catch (error) {
-    console.error('Failed to load settings:', error);
-    return {
-      apiKey: '',
-      model: 'gemini-pro-vision',
-      language: 'javascript',
-      theme: 'vs-dark'
-    };
+  // Use the cached settings if available, otherwise load from disk
+  if (settings) {
+    return settings;
   }
+  return await loadAppSettings();
 });
 
 // Prevent app from closing when all windows are closed
