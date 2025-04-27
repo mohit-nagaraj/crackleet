@@ -1,47 +1,32 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const fs = require('fs');
 
-// Expose a limited API to the renderer process
+// Expose protected methods that allow the renderer process to use
+// the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
-  onVisibilityChange: (callback) => {
-    ipcRenderer.on('visibility-changed', (event, visible) => {
-      callback(visible);
-    });
-  },
+  // IPC communication
+  captureScreenshot: () => ipcRenderer.invoke('capture-screenshot'),
+  analyzeWithLLM: (apiKey, model, imagePath, prompt) => 
+    ipcRenderer.invoke('analyze-with-llm', apiKey, model, imagePath, prompt),
+  saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  loadSettings: () => ipcRenderer.invoke('load-settings'),
   
-  onScreenshotCaptured: (callback) => {
-    ipcRenderer.on('screenshot-captured', (event, imagePath) => {
-      callback(imagePath);
-    });
-  },
-  
-  captureScreenshot: () => {
-    return ipcRenderer.invoke('capture-screenshot');
-  },
-  
-  analyzeWithLLM: (apiKey, model, imagePath, prompt) => {
-    return ipcRenderer.invoke('analyze-with-llm', apiKey, model, imagePath, prompt);
-  },
-  
-  saveSettings: (settings) => {
-    return ipcRenderer.invoke('save-settings', settings);
-  },
-  
-  loadSettings: () => {
-    return ipcRenderer.invoke('load-settings');
-  },
-  
-  readImageAsDataURL: (imagePath) => {
+  // Event listeners
+  onVisibilityChange: (callback) => 
+    ipcRenderer.on('visibility-changed', (_, visible) => callback(visible)),
+  onScreenshotCaptured: (callback) => 
+    ipcRenderer.on('screenshot-captured', (_, path) => callback(path)),
+    
+  // Helper methods
+  readImageAsDataURL: (path) => {
     return new Promise((resolve, reject) => {
-      fs.readFile(imagePath, (err, data) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        
+      try {
+        const data = fs.readFileSync(path);
         const base64 = data.toString('base64');
         resolve(`data:image/png;base64,${base64}`);
-      });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 });

@@ -170,21 +170,56 @@
       border-radius: 5px;
       margin-top: 10px;
     }
+    
+    #complexityInfo {
+      background-color: rgba(40, 40, 40, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    
+    #explanationText h3 {
+      color: #61afef;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+    
+    #explanationText ul {
+      padding-left: 20px;
+    }
+    
+    #explanationText li {
+      margin-bottom: 5px;
+    }
+    
+    .copy-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      background-color: rgba(80, 80, 80, 0.7);
+    }
+    
+    .code-container {
+      position: relative;
+    }
   </style>
 </head>
 <body>
   <div id="dragRegion">
     <div>LeetCode Helper</div>
     <div class="nav-buttons">
-      <div class="tab active" data-screen="welcomeScreen">Home</div>
-      <div class="tab" data-screen="analysisScreen">Analysis</div>
+      <div class="tab" data-screen="welcomeScreen">Home</div>
+      <div class="tab active" data-screen="analysisScreen">Analysis</div>
       <div class="tab" data-screen="settingsScreen">Settings</div>
     </div>
   </div>
   
   <div id="mainContent">
     <!-- Welcome Screen -->
-    <div id="welcomeScreen" style="display: block;">
+    <div id="welcomeScreen">
       <h1>LeetCode Interview Helper</h1>
       
       <div class="setting-group">
@@ -203,7 +238,7 @@
     </div>
     
     <!-- Analysis Screen -->
-    <div id="analysisScreen">
+    <div id="analysisScreen" style="display: flex;">
       <h2>Problem Analysis</h2>
       
       <img id="screenshotPreview" alt="Screenshot Preview">
@@ -218,10 +253,14 @@
         <div class="leftPanel">
           <h3>Explanation</h3>
           <div id="explanationText"></div>
+          <div id="complexityInfo"></div>
         </div>
         <div class="rightPanel">
           <h3>Code Solution</h3>
-          <pre><code id="codeBlock"></code></pre>
+          <div class="code-container">
+            <button id="copyCodeBtn" class="copy-btn">Copy</button>
+            <pre><code id="codeBlock"></code></pre>
+          </div>
         </div>
       </div>
     </div>
@@ -239,9 +278,8 @@
         <label for="modelSelect">LLM Model:</label><br>
         <select id="modelSelect" style="width: 100%;">
           <option value="gemini-pro-vision">Gemini Pro Vision</option>
-          <option value="gemini-ultra-vision">Gemini Ultra Vision</option>
-          <option value="claude-3-opus">Claude 3 Opus</option>
-          <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+          <option value="gemini-1.5-pro-vision">Gemini 1.5 Pro Vision</option>
+          <option value="gemini-1.5-flash-vision">Gemini 1.5 Flash Vision</option>
         </select>
       </div>
       
@@ -285,6 +323,8 @@
     const analysisResults = document.getElementById('analysisResults');
     const explanationText = document.getElementById('explanationText');
     const codeBlock = document.getElementById('codeBlock');
+    const complexityInfo = document.getElementById('complexityInfo');
+    const copyCodeBtn = document.getElementById('copyCodeBtn');
     
     // Form elements
     const apiKeyInput = document.getElementById('apiKeyInput');
@@ -376,7 +416,7 @@
       
       try {
         // Construct prompt based on preferred language
-        const prompt = `Analyze this LeetCode problem and provide a solution in ${settings.language}. Include an explanation of the approach, time and space complexity analysis.`;
+        const prompt = `Preferred language: ${settings.language}`;
         
         // Call the LLM API
         const result = await window.electronAPI.analyzeWithLLM(
@@ -390,6 +430,7 @@
         explanationText.innerHTML = result.explanation;
         codeBlock.textContent = result.code;
         codeBlock.className = settings.language;
+        complexityInfo.textContent = result.complexity || "Time and Space Complexity not specified";
         
         // Apply syntax highlighting
         hljs.highlightElement(codeBlock);
@@ -400,9 +441,19 @@
         
       } catch (error) {
         console.error('Analysis failed:', error);
-        alert('Failed to analyze image with LLM');
+        alert(`Failed to analyze image: ${error.message || 'Unknown error'}`);
         loadingAnalysis.classList.add('hidden');
       }
+    });
+    
+    // Copy code to clipboard
+    copyCodeBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+        copyCodeBtn.textContent = "Copied!";
+        setTimeout(() => {
+          copyCodeBtn.textContent = "Copy";
+        }, 2000);
+      });
     });
     
     discardScreenshotBtn.addEventListener('click', () => {
