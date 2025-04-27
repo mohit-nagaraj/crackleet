@@ -44,12 +44,23 @@ async function captureScreenshot() {
   await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
-    // Use desktopCapturer to get a screenshot of the primary display
-    const sources = await desktopCapturer.getSources({ types: ['screen'] });
+    // Get all screen sources with high-resolution thumbnails
+    const sources = await desktopCapturer.getSources({ 
+      types: ['screen'], 
+      thumbnailSize: { 
+        width: screen.getPrimaryDisplay().size.width,
+        height: screen.getPrimaryDisplay().size.height
+      }
+    });
 
     // Find the primary display source
     const primaryDisplay = screen.getPrimaryDisplay();
-    const source = sources.find(source => source.display_id === primaryDisplay.id.toString());
+    const source = sources.find(s => {
+      // Different platforms may have different source display_id formats
+      return s.display_id === primaryDisplay.id.toString() || 
+             s.display_id === primaryDisplay.id || 
+             (sources.length === 1); // Fallback if we can't match by ID
+    });
 
     if (!source) {
       throw new Error('Primary display source not found');
@@ -63,6 +74,7 @@ async function captureScreenshot() {
 
     // Save the image
     await writeFile(tempFilePath, image);
+    console.log('Screenshot saved to:', tempFilePath);
 
     // Show our window again if it was visible before
     if (wasVisible) {
@@ -86,6 +98,7 @@ async function captureScreenshot() {
 
   } catch (error) {
     console.error('Screenshot capture failed:', error);
+    console.error('Error details:', error.stack);
 
     // Show our window again if it was visible before
     if (wasVisible) {
