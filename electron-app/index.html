@@ -342,10 +342,10 @@
     // Current state
     let currentScreenshotPath = null;
     let settings = {
-      apiKey: '',
-      model: 'gemini-pro-vision',
-      language: 'javascript',
-      theme: 'vs-dark'
+      apiKey: localStorage.getItem('apiKey') || '',
+      model: localStorage.getItem('model') || 'gemini-pro-vision',
+      language: localStorage.getItem('language') || 'javascript',
+      theme: localStorage.getItem('theme') || 'vs-dark'
     };
     
     // Tab navigation
@@ -404,8 +404,9 @@
         return;
       }
       
-      // Check if API key is set
-      if (!settings.apiKey) {
+      // Check if API key is set - First check localStorage, then settings object
+      const apiKey = localStorage.getItem('apiKey') || settings.apiKey;
+      if (!apiKey) {
         alert('Please set your API key in the Settings tab');
         return;
       }
@@ -415,13 +416,17 @@
       analysisResults.classList.add('hidden');
       
       try {
+        // Get language from localStorage or settings object
+        const language = localStorage.getItem('language') || settings.language;
+        const model = localStorage.getItem('model') || settings.model;
+        
         // Construct prompt based on preferred language
-        const prompt = `Preferred language: ${settings.language}`;
+        const prompt = `Preferred language: ${language}`;
         
         // Call the LLM API
         const result = await window.electronAPI.analyzeWithLLM(
-          settings.apiKey,
-          settings.model,
+          apiKey,
+          model,
           currentScreenshotPath,
           prompt
         );
@@ -429,7 +434,7 @@
         // Display results
         explanationText.innerHTML = result.explanation;
         codeBlock.textContent = result.code;
-        codeBlock.className = settings.language;
+        codeBlock.className = language;
         complexityInfo.textContent = result.complexity || "Time and Space Complexity not specified";
         
         // Apply syntax highlighting
@@ -466,6 +471,7 @@
     
     // Settings management
     saveSettingsBtn.addEventListener('click', async () => {
+      // Update local settings object
       settings = {
         apiKey: apiKeyInput.value,
         model: modelSelect.value,
@@ -473,6 +479,13 @@
         theme: themeSelect.value
       };
       
+      // Save to localStorage first
+      localStorage.setItem('apiKey', settings.apiKey);
+      localStorage.setItem('model', settings.model);
+      localStorage.setItem('language', settings.language);
+      localStorage.setItem('theme', settings.theme);
+      
+      // Also save to file system through Electron
       const saved = await window.electronAPI.saveSettings(settings);
       if (saved) {
         settingsSaved.style.display = 'block';
@@ -481,21 +494,45 @@
           settingsSaved.style.display = 'none';
         }, 2000);
       } else {
-        alert('Failed to save settings');
+        alert('Failed to save settings to file system, but they are saved in browser storage');
       }
     });
     
     // Load settings on startup
     async function loadSettings() {
       try {
-        settings = await window.electronAPI.loadSettings();
+        // Try to load settings from file system first
+        const fileSettings = await window.electronAPI.loadSettings();
+        
+        // Merge settings from file with localStorage, with localStorage taking priority
+        settings = {
+          apiKey: localStorage.getItem('apiKey') || fileSettings.apiKey || '',
+          model: localStorage.getItem('model') || fileSettings.model || 'gemini-pro-vision',
+          language: localStorage.getItem('language') || fileSettings.language || 'javascript',
+          theme: localStorage.getItem('theme') || fileSettings.theme || 'vs-dark'
+        };
+        
+        // Update localStorage with merged settings for consistency
+        localStorage.setItem('apiKey', settings.apiKey);
+        localStorage.setItem('model', settings.model);
+        localStorage.setItem('language', settings.language);
+        localStorage.setItem('theme', settings.theme);
+        
+        // Update UI
         apiKeyInput.value = settings.apiKey;
         modelSelect.value = settings.model;
         languageSelect.value = settings.language;
         themeSelect.value = settings.theme;
         currentModel.textContent = settings.model;
       } catch (error) {
-        console.error('Failed to load settings:', error);
+        console.error('Failed to load settings from file system:', error);
+        
+        // Fall back to localStorage only
+        apiKeyInput.value = localStorage.getItem('apiKey') || '';
+        modelSelect.value = localStorage.getItem('model') || 'gemini-pro-vision';
+        languageSelect.value = localStorage.getItem('language') || 'javascript';
+        themeSelect.value = localStorage.getItem('theme') || 'vs-dark';
+        currentModel.textContent = localStorage.getItem('model') || 'gemini-pro-vision';
       }
     }
     

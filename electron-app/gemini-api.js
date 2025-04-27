@@ -20,6 +20,10 @@ class GeminiAPI {
       const imageBuffer = fs.readFileSync(imagePath);
       const base64Image = imageBuffer.toString('base64');
       
+      // Extract language preference from prompt or use default
+      const languageMatch = prompt.match(/Preferred language: (\w+)/i);
+      const language = languageMatch ? languageMatch[1] : 'JavaScript';
+      
       // Prepare the request payload with a more specific prompt
       const payload = {
         contents: [
@@ -34,7 +38,7 @@ I need the response in the following format:
 3. An explanation of your approach and key insights
 4. Time and space complexity analysis with explanations
 
-The preferred language is: ${prompt.includes('language') ? prompt : 'JavaScript (default)'}` 
+The preferred language is: ${language}` 
               },
               {
                 inline_data: {
