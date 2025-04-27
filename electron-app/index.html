@@ -211,8 +211,8 @@
   <div id="dragRegion">
     <div>LeetCode Helper</div>
     <div class="nav-buttons">
-      <div class="tab" data-screen="welcomeScreen">Home</div>
-      <div class="tab active" data-screen="analysisScreen">Analysis</div>
+      <div class="tab active" data-screen="welcomeScreen">Home</div>
+      <div class="tab" data-screen="analysisScreen">Analysis</div>
       <div class="tab" data-screen="settingsScreen">Settings</div>
     </div>
   </div>
@@ -238,7 +238,7 @@
     </div>
     
     <!-- Analysis Screen -->
-    <div id="analysisScreen" style="display: flex;">
+    <div id="analysisScreen">
       <h2>Problem Analysis</h2>
       
       <img id="screenshotPreview" alt="Screenshot Preview">
@@ -350,21 +350,21 @@
     
     // Tab navigation
     tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        const targetScreen = tab.getAttribute('data-screen');
-        screens.forEach(screen => {
-          screen.style.display = screen.id === targetScreen ? 'block' : 'none';
-        });
-        
-        // Special case for analysis screen which is a flex container
-        if (targetScreen === 'analysisScreen') {
-          document.getElementById('analysisScreen').style.display = 'flex';
-        }
-      });
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    
+    const targetScreen = tab.getAttribute('data-screen');
+    screens.forEach(screen => {
+      if (screen.id === targetScreen) {
+        // Use flex display for analysis screen
+        screen.style.display = screen.id === 'analysisScreen' ? 'flex' : 'block';
+      } else {
+        screen.style.display = 'none';
+      }
     });
+  });
+});
     
     // Listen for visibility change events from the main process
     window.electronAPI.onVisibilityChange((visible) => {
@@ -488,6 +488,7 @@
       // Also save to file system through Electron
       const saved = await window.electronAPI.saveSettings(settings);
       if (saved) {
+        console.log('Settings saved to file system');
         settingsSaved.style.display = 'block';
         currentModel.textContent = settings.model;
         setTimeout(() => {
