@@ -156,8 +156,15 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true
-    }
+    },
+    // hasShadow: false
   });
+
+  // win.setIgnoreMouseEvents(true, { forward: true });
+  
+  // ipcMain.handle('toggle-mouse-events', (event, ignore) => {
+  //   win.setIgnoreMouseEvents(ignore, { forward: true });
+  // });
 
   win.setContentProtection(true);
   win.loadFile('index.html');
@@ -202,8 +209,17 @@ function registerHotkeys() {
 
 app.whenReady().then(async () => {
   cleanupTempFiles();
+  console.log('User data path:', app.getPath('userData'));
   createWindow();
   registerHotkeys();
+
+  const testPath = path.join(app.getPath('userData'), 'test.json');
+  try {
+    await writeFile(testPath, JSON.stringify({ test: 'data' }, null, 2));
+    console.log('Test file written successfully:', testPath);
+  } catch (error) {
+    console.error('Failed to write test file:', error.message);
+  }
 });
 
 app.on('will-quit', () => {
@@ -243,25 +259,42 @@ ipcMain.handle('analyze-with-llm', async (event, apiKey, model, imagePath, promp
 
 ipcMain.handle('save-settings', async (event, newSettings) => {
   try {
+    if (typeof newSettings !== 'object' || newSettings === null) {
+      throw new Error('Invalid settings data');
+    }
+
     const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    console.log('Saving settings to:', settingsPath);
+    console.log('Settings data:', newSettings);
+
     await writeFile(settingsPath, JSON.stringify(newSettings, null, 2));
-    
-    // Update our local settings
-    settings = newSettings;
-    
+    settings = newSettings; // Update cached settings
     return true;
   } catch (error) {
-    console.error('Failed to save settings:', error);
+    console.error('Failed to save settings:', error.message);
+    console.error('Error details:', error.stack);
     return false;
   }
 });
 
 ipcMain.handle('load-settings', async () => {
-  // Use the cached settings if available, otherwise load from disk
-  if (settings) {
-    return settings;
+  try {
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+      const data = fs.readFileSync(settingsPath, 'utf8');
+      return JSON.parse(data);
+    }
+    // Return default settings if the file doesn't exist
+    return {
+      apiKey: '',
+      model: 'gemini-pro-vision',
+      language: 'javascript',
+      theme: 'vs-dark'
+    };
+  } catch (error) {
+    console.error('Failed to load settings:', error);
+    throw error;
   }
-  return await loadAppSettings();
 });
 
 // Prevent app from closing when all windows are closed

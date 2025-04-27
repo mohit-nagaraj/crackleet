@@ -204,15 +204,61 @@
     .code-container {
       position: relative;
     }
+    
+    /* Make interactive regions more obvious */
+    .interactive {
+      position: relative;
+      cursor: pointer !important;
+    }
+    
+    .interactive:hover {
+      box-shadow: 0 0 8px rgba(97, 175, 239, 0.8);
+      outline: 1px solid rgba(97, 175, 239, 0.5);
+    }
+    
+    /* Area for toggling mouse interaction without having elements */
+    #interactionToggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: rgba(97, 175, 239, 0.3);
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+    }
+    
+    #interactionToggle:hover {
+      opacity: 1;
+    }
+    
+    .mouse-active {
+      background-color: rgba(20, 250, 120, 0.3) !important;
+    }
+    
+    /* Highlight when interaction is enabled */
+    body.interaction-enabled {
+      box-shadow: inset 0 0 10px rgba(97, 175, 239, 0.5);
+    }
   </style>
 </head>
 <body>
+  <!-- Mouse toggle button -->
+  <div id="interactionToggle" title="Toggle mouse interaction">M</div>
+  
   <div id="dragRegion">
     <div>LeetCode Helper</div>
     <div class="nav-buttons">
-      <div class="tab active" data-screen="welcomeScreen">Home</div>
-      <div class="tab" data-screen="analysisScreen">Analysis</div>
-      <div class="tab" data-screen="settingsScreen">Settings</div>
+      <div class="tab interactive active" data-screen="welcomeScreen">Home</div>
+      <div class="tab interactive" data-screen="analysisScreen">Analysis</div>
+      <div class="tab interactive" data-screen="settingsScreen">Settings</div>
     </div>
   </div>
   
@@ -223,7 +269,7 @@
       
       <div class="setting-group">
         <h2>Quick Start</h2>
-        <button id="captureScreenshotBtn">Capture Screenshot</button>
+        <button id="captureScreenshotBtn" class="interactive">Capture Screenshot</button>
       </div>
       
       <div class="note">
@@ -232,6 +278,7 @@
           <li><strong>Ctrl+Alt+H:</strong> Toggle visibility</li>
           <li><strong>Ctrl+Alt+S:</strong> Capture screenshot</li>
           <li><strong>Ctrl+Alt+Q:</strong> Quit application</li>
+          <li><strong>Ctrl+Alt+M:</strong> Toggle mouse interaction</li>
         </ul>
       </div>
     </div>
@@ -242,8 +289,8 @@
       
       <img id="screenshotPreview" alt="Screenshot Preview">
       <div id="screenshotActions" style="display: none; margin-bottom: 15px;">
-        <button id="analyzeScreenshotBtn">Analyze with AI</button>
-        <button id="discardScreenshotBtn">Discard</button>
+        <button id="analyzeScreenshotBtn" class="interactive">Analyze with AI</button>
+        <button id="discardScreenshotBtn" class="interactive">Discard</button>
       </div>
       
       <div id="loadingAnalysis" class="loading hidden"></div>
@@ -257,7 +304,7 @@
         <div class="rightPanel">
           <h3>Code Solution</h3>
           <div class="code-container">
-            <button id="copyCodeBtn" class="copy-btn">Copy</button>
+            <button id="copyCodeBtn" class="copy-btn interactive">Copy</button>
             <pre><code id="codeBlock"></code></pre>
           </div>
         </div>
@@ -270,12 +317,12 @@
       
       <div class="setting-group">
         <label for="apiKeyInput">Gemini API Key:</label><br>
-        <input type="password" id="apiKeyInput" placeholder="Enter your API key" style="width: 100%;">
+        <input type="password" id="apiKeyInput" class="interactive" placeholder="Enter your API key" style="width: 100%;">
       </div>
       
       <div class="setting-group">
         <label for="modelSelect">LLM Model:</label><br>
-        <select id="modelSelect" style="width: 100%;">
+        <select id="modelSelect" class="interactive" style="width: 100%;">
           <option value="gemini-pro-vision">Gemini Pro Vision</option>
           <option value="gemini-1.5-pro-vision">Gemini 1.5 Pro Vision</option>
           <option value="gemini-1.5-flash-vision">Gemini 1.5 Flash Vision</option>
@@ -284,7 +331,7 @@
       
       <div class="setting-group">
         <label for="languageSelect">Preferred Code Language:</label><br>
-        <select id="languageSelect" style="width: 100%;">
+        <select id="languageSelect" class="interactive" style="width: 100%;">
           <option value="javascript">JavaScript</option>
           <option value="python">Python</option>
           <option value="java">Java</option>
@@ -294,13 +341,13 @@
       
       <div class="setting-group">
         <label for="themeSelect">Editor Theme:</label><br>
-        <select id="themeSelect" style="width: 100%;">
+        <select id="themeSelect" class="interactive" style="width: 100%;">
           <option value="vs-dark">Dark</option>
           <option value="github">Light</option>
         </select>
       </div>
       
-      <button id="saveSettingsBtn">Save Settings</button>
+      <button id="saveSettingsBtn" class="interactive">Save Settings</button>
       <div id="settingsSaved" style="color: #4CAF50; margin-top: 10px; display: none;">Settings saved successfully!</div>
     </div>
   </div>
@@ -308,6 +355,7 @@
   <div id="statusBar">
     <div>Status: <span id="statusText">Visible</span></div>
     <div id="modelInfo">Model: <span id="currentModel">Not set</span></div>
+    <!-- <div id="mouseStatus">Mouse: <span id="mouseStatusText">Disabled</span></div> -->
   </div>
 
   <script>
@@ -315,6 +363,7 @@
     const tabs = document.querySelectorAll('.tab');
     const screens = document.querySelectorAll('#welcomeScreen, #analysisScreen, #settingsScreen');
     const statusText = document.getElementById('statusText');
+    const mouseStatusText = document.getElementById('mouseStatusText');
     const currentModel = document.getElementById('currentModel');
     const screenshotPreview = document.getElementById('screenshotPreview');
     const screenshotActions = document.getElementById('screenshotActions');
@@ -324,6 +373,7 @@
     const codeBlock = document.getElementById('codeBlock');
     const complexityInfo = document.getElementById('complexityInfo');
     const copyCodeBtn = document.getElementById('copyCodeBtn');
+    const interactionToggle = document.getElementById('interactionToggle');
     
     // Form elements
     const apiKeyInput = document.getElementById('apiKeyInput');
@@ -339,31 +389,218 @@
     const discardScreenshotBtn = document.getElementById('discardScreenshotBtn');
     
     // Current state
-    let currentScreenshotPath = null;
     let settings = {
-      apiKey: localStorage.getItem('apiKey') || '',
-      model: localStorage.getItem('model') || 'gemini-pro-vision',
-      language: localStorage.getItem('language') || 'javascript',
-      theme: localStorage.getItem('theme') || 'vs-dark'
+      apiKey: '',
+      model: 'gemini-pro-vision',
+      language: 'javascript',
+      theme: 'vs-dark'
     };
+    
+    // Load settings from the file system on startup
+    async function loadSetting() {
+      try {
+        const fileSettings = await window.electronAPI.loadSettings();
+        settings = {
+          apiKey: fileSettings.apiKey || '',
+          model: fileSettings.model || 'gemini-pro-vision',
+          language: fileSettings.language || 'javascript',
+          theme: fileSettings.theme || 'vs-dark'
+        };
+
+        // Update the UI with the loaded settings
+        apiKeyInput.value = settings.apiKey;
+        modelSelect.value = settings.model;
+        languageSelect.value = settings.language;
+        themeSelect.value = settings.theme;
+        currentModel.textContent = settings.model;
+
+        console.log('Settings loaded successfully:', settings);
+      } catch (error) {
+        console.error('Failed to load settings from the file system:', error);
+
+        // Use default settings if loading fails
+        settings = {
+          apiKey: '',
+          model: 'gemini-pro-vision',
+          language: 'javascript',
+          theme: 'vs-dark'
+        };
+
+        // Update the UI with default settings
+        apiKeyInput.value = settings.apiKey;
+        modelSelect.value = settings.model;
+        languageSelect.value = settings.language;
+        themeSelect.value = settings.theme;
+        currentModel.textContent = settings.model;
+      }
+    }
+
+    // Save settings to the file system
+    async function saveSetting() {
+      settings = {
+        apiKey: apiKeyInput.value,
+        model: modelSelect.value,
+        language: languageSelect.value,
+        theme: themeSelect.value
+      };
+
+      try {
+        const saved = await window.electronAPI.saveSettings(settings);
+        if (saved) {
+          console.log('Settings saved successfully:', settings);
+          settingsSaved.style.display = 'block';
+          currentModel.textContent = settings.model;
+          setTimeout(() => {
+            settingsSaved.style.display = 'none';
+          }, 2000);
+        } else {
+          throw new Error('Failed to save settings');
+        }
+      } catch (error) {
+        console.error('Failed to save settings:', error.message);
+        alert(error.message);
+      }
+    }
+
+    // Load settings on startup
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSetting();
+    });
+
+    // Save settings when the "Save Settings" button is clicked
+    saveSettingsBtn.addEventListener('click', saveSetting);
+    
+    // Mouse interaction state
+    let mouseInteractionEnabled = false;
+    
+    // Function to enable mouse interaction
+    function enableMouseInteraction() {
+      if (!mouseInteractionEnabled) {
+        window.electronAPI.toggleMouseEvents(false);
+        mouseInteractionEnabled = true;
+        document.body.classList.add('interaction-enabled');
+        mouseStatusText.textContent = 'Enabled';
+        interactionToggle.classList.add('mouse-active');
+      }
+    }
+    
+    // Function to disable mouse interaction
+    function disableMouseInteraction() {
+      if (mouseInteractionEnabled) {
+        // Don't disable if we're focused on an input
+        const activeElement = document.activeElement;
+        if (activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'SELECT' || 
+            activeElement.tagName === 'TEXTAREA') {
+          return;
+        }
+        
+        window.electronAPI.toggleMouseEvents(true);
+        mouseInteractionEnabled = false;
+        document.body.classList.remove('interaction-enabled');
+        mouseStatusText.textContent = 'Disabled';
+        interactionToggle.classList.remove('mouse-active');
+      }
+    }
+    
+    const debouncedDisableMouseInteraction = debounce(disableMouseInteraction, 200);
+    
+    // Function to toggle mouse interaction
+    function toggleMouseInteraction() {
+      if (mouseInteractionEnabled) {
+        disableMouseInteraction();
+      } else {
+        enableMouseInteraction();
+      }
+    }
+    
+    // Add mouse toggle button functionality
+    interactionToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleMouseInteraction();
+    });
+    
+    // Add global keyboard shortcut for toggling mouse interaction
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+Alt+M
+      if (e.ctrlKey && e.altKey && e.key === 'm') {
+        toggleMouseInteraction();
+      }
+    });
+
+    // Add global keyboard shortcut for toggling mouse interaction
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+Shift+M
+      if (e.ctrlKey && e.shiftKey && e.key === 'm') {
+        toggleMouseInteraction();
+      }
+    });
+    
+    // Auto-enable mouse interaction when hovering over interactive elements
+    const interactiveElements = document.querySelectorAll('.interactive');
+    interactiveElements.forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        enableMouseInteraction();
+      });
+    });
+    
+    // Handle focus events for form elements
+    const formElements = document.querySelectorAll('input, select, textarea');
+    formElements.forEach(element => {
+      element.addEventListener('focus', () => {
+        enableMouseInteraction();
+      });
+      
+      element.addEventListener('blur', () => {
+        // Don't disable immediately to allow clicking other elements
+        // This will be handled by the document click handler
+      });
+    });
+    
+    // Disable mouse interaction when clicking outside interactive elements
+    document.addEventListener('click', (e) => {
+      let target = e.target;
+      let isInteractiveElement = false;
+      
+      // Check if the click was on or inside an interactive element
+      while (target && target !== document) {
+        if (target.classList && (
+            target.classList.contains('interactive') || 
+            target.id === 'interactionToggle' ||
+            target.tagName === 'INPUT' ||
+            target.tagName === 'SELECT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'BUTTON'
+           )) {
+          isInteractiveElement = true;
+          break;
+        }
+        target = target.parentNode;
+      }
+      
+      // If clicked outside interactive elements, disable mouse interaction
+      if (!isInteractiveElement) {
+        debouncedDisableMouseInteraction();
+      }
+    });
     
     // Tab navigation
     tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    
-    const targetScreen = tab.getAttribute('data-screen');
-    screens.forEach(screen => {
-      if (screen.id === targetScreen) {
-        // Use flex display for analysis screen
-        screen.style.display = screen.id === 'analysisScreen' ? 'flex' : 'block';
-      } else {
-        screen.style.display = 'none';
-      }
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        const targetScreen = tab.getAttribute('data-screen');
+        screens.forEach(screen => {
+          if (screen.id === targetScreen) {
+            // Use flex display for analysis screen
+            screen.style.display = screen.id === 'analysisScreen' ? 'flex' : 'block';
+          } else {
+            screen.style.display = 'none';
+          }
+        });
+      });
     });
-  });
-});
     
     // Listen for visibility change events from the main process
     window.electronAPI.onVisibilityChange((visible) => {
@@ -389,12 +626,19 @@
         
       } catch (error) {
         console.error('Failed to load screenshot:', error);
-        alert('Failed to load screenshot');
+        alert(error.message || 'Failed to load screenshot2');
       }
     });
     
     captureScreenshotBtn.addEventListener('click', async () => {
+      // Temporarily disable mouse events during the screenshot process
+      const wasEnabled = mouseInteractionEnabled;
+      disableMouseInteraction();
       await window.electronAPI.captureScreenshot();
+      // Restore mouse interaction state if it was enabled before
+      if (wasEnabled) {
+        setTimeout(enableMouseInteraction, 500);
+      }
     });
     
     analyzeScreenshotBtn.addEventListener('click', async () => {
@@ -468,78 +712,27 @@
       analysisResults.classList.add('hidden');
     });
     
-    // Settings management
-    saveSettingsBtn.addEventListener('click', async () => {
-      // Update local settings object
-      settings = {
-        apiKey: apiKeyInput.value,
-        model: modelSelect.value,
-        language: languageSelect.value,
-        theme: themeSelect.value
-      };
-      
-      // Save to localStorage first
-      localStorage.setItem('apiKey', settings.apiKey);
-      localStorage.setItem('model', settings.model);
-      localStorage.setItem('language', settings.language);
-      localStorage.setItem('theme', settings.theme);
-      
-      // Also save to file system through Electron
-      const saved = await window.electronAPI.saveSettings(settings);
-      if (saved) {
-        console.log('Settings saved to file system');
-        settingsSaved.style.display = 'block';
-        currentModel.textContent = settings.model;
-        setTimeout(() => {
-          settingsSaved.style.display = 'none';
-        }, 2000);
-      } else {
-        alert('Failed to save settings to file system, but they are saved in browser storage');
-      }
-    });
-    
-    // Load settings on startup
-    async function loadSettings() {
-      try {
-        // Try to load settings from file system first
-        const fileSettings = await window.electronAPI.loadSettings();
-        
-        // Merge settings from file with localStorage, with localStorage taking priority
-        settings = {
-          apiKey: localStorage.getItem('apiKey') || fileSettings.apiKey || '',
-          model: localStorage.getItem('model') || fileSettings.model || 'gemini-pro-vision',
-          language: localStorage.getItem('language') || fileSettings.language || 'javascript',
-          theme: localStorage.getItem('theme') || fileSettings.theme || 'vs-dark'
-        };
-        
-        // Update localStorage with merged settings for consistency
-        localStorage.setItem('apiKey', settings.apiKey);
-        localStorage.setItem('model', settings.model);
-        localStorage.setItem('language', settings.language);
-        localStorage.setItem('theme', settings.theme);
-        
-        // Update UI
-        apiKeyInput.value = settings.apiKey;
-        modelSelect.value = settings.model;
-        languageSelect.value = settings.language;
-        themeSelect.value = settings.theme;
-        currentModel.textContent = settings.model;
-      } catch (error) {
-        console.error('Failed to load settings from file system:', error);
-        
-        // Fall back to localStorage only
-        apiKeyInput.value = localStorage.getItem('apiKey') || '';
-        modelSelect.value = localStorage.getItem('model') || 'gemini-pro-vision';
-        languageSelect.value = localStorage.getItem('language') || 'javascript';
-        themeSelect.value = localStorage.getItem('theme') || 'vs-dark';
-        currentModel.textContent = localStorage.getItem('model') || 'gemini-pro-vision';
-      }
-    }
+    // Initialize with mouse events disabled by default
+    window.electronAPI.toggleMouseEvents(true);
     
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      loadSettings();
+      // Briefly enable mouse interaction at startup to allow first interaction
+      setTimeout(() => {
+        enableMouseInteraction();
+        setTimeout(disableMouseInteraction, 1000); 
+      }, 500);
     });
+
+    // Debounce function
+    function debounce(func, delay) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), delay);
+      };
+    }
   </script>
 </body>
 </html>
+`
