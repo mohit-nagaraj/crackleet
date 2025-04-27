@@ -2,7 +2,13 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Secure Window 123</title>
+  <title>LeetCode Helper</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/java.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/cpp.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -17,85 +23,444 @@
       flex-direction: column;
       height: 100vh;
     }
-    #content {
+    
+    #dragRegion {
+      -webkit-app-region: drag;
+      background-color: rgba(20, 20, 20, 0.8);
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .tab {
+      padding: 5px 10px;
+      cursor: pointer;
+      background-color: rgba(40, 40, 40, 0.5);
+      border-radius: 4px;
+      -webkit-app-region: no-drag;
+    }
+    
+    .tab.active {
+      background-color: rgba(60, 60, 60, 0.8);
+    }
+    
+    #mainContent {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      overflow: hidden;
+    }
+    
+    #welcomeScreen, #settingsScreen, #analysisScreen {
       padding: 20px;
       background-color: rgba(40, 44, 52, 0.8);
       border-radius: 8px;
       margin: 10px;
       flex-grow: 1;
       overflow: auto;
+      display: none;
     }
+    
+    #analysisScreen {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #screenshotPreview {
+      max-width: 100%;
+      max-height: 200px;
+      margin-bottom: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      display: none;
+    }
+    
+    .splitView {
+      display: flex;
+      flex-grow: 1;
+      overflow: hidden;
+    }
+    
+    .leftPanel, .rightPanel {
+      flex: 1;
+      padding: 10px;
+      overflow: auto;
+    }
+    
+    .leftPanel {
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    pre {
+      margin: 0;
+      padding: 15px;
+      border-radius: 5px;
+      background-color: rgba(30, 30, 30, 0.9);
+      overflow: auto;
+    }
+    
+    code {
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+    
     #statusBar {
       background-color: rgba(30, 30, 30, 0.9);
       padding: 5px 10px;
-      text-align: right;
-      font-size: 0.8em;
+      display: flex;
+      justify-content: space-between;
     }
-    h1 {
-      margin-top: 0;
+    
+    .setting-group {
+      margin-bottom: 20px;
     }
-    .section {
-      margin-bottom: 15px;
+    
+    input, select, button {
+      background-color: rgba(60, 60, 60, 0.8);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin: 5px 0;
     }
+    
+    button {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: rgba(80, 80, 80, 0.8);
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+    }
+    
+    .loading::after {
+      content: "";
+      width: 40px;
+      height: 40px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     .note {
       background-color: rgba(255, 255, 255, 0.1);
       padding: 10px;
       border-radius: 5px;
       margin-top: 10px;
     }
-    /* Allow dragging from the status bar */
-    #dragRegion {
-      -webkit-app-region: drag;
-      background-color: rgba(20, 20, 20, 0.8);
-      padding: 8px;
-      text-align: center;
-    }
   </style>
 </head>
 <body>
-  <div id="dragRegion">LeetCode Helper - Drag from here</div>
+  <div id="dragRegion">
+    <div>LeetCode Helper</div>
+    <div class="nav-buttons">
+      <div class="tab active" data-screen="welcomeScreen">Home</div>
+      <div class="tab" data-screen="analysisScreen">Analysis</div>
+      <div class="tab" data-screen="settingsScreen">Settings</div>
+    </div>
+  </div>
   
-  <div id="content">
-    <h1>LeetCode Helper</h1>
+  <div id="mainContent">
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" style="display: block;">
+      <h1>LeetCode Interview Helper</h1>
+      
+      <div class="setting-group">
+        <h2>Quick Start</h2>
+        <p>Use the keyboard shortcuts to capture a screenshot of a LeetCode problem, then analyze it with AI.</p>
+        <button id="captureScreenshotBtn">Capture Screenshot</button>
+      </div>
+      
+      <div class="note">
+        <h3>Hotkeys:</h3>
+        <ul>
+          <li><strong>Ctrl+Alt+H:</strong> Toggle visibility</li>
+          <li><strong>Ctrl+Alt+S:</strong> Capture screenshot</li>
+          <li><strong>Ctrl+Alt+Q:</strong> Quit application</li>
+        </ul>
+      </div>
+      
+      <div class="setting-group">
+        <h2>Tips</h2>
+        <ul>
+          <li>Set up your API key in the Settings tab</li>
+          <li>Position this window to not obstruct your view</li>
+          <li>Use hotkeys to quickly hide/show during interviews</li>
+        </ul>
+      </div>
+    </div>
     
-    <div class="section">
-      <h2>Quick Tips</h2>
-      <ul>
-        <li>Think about the time complexity before coding</li>
-        <li>Consider edge cases: empty arrays, null inputs</li>
-        <li>Use data structures to optimize: hash maps, heaps, stacks</li>
-      </ul>
+    <!-- Analysis Screen -->
+    <div id="analysisScreen">
+      <h2>Problem Analysis</h2>
+      
+      <img id="screenshotPreview" alt="Screenshot Preview">
+      <div id="screenshotActions" style="display: none; margin-bottom: 15px;">
+        <button id="analyzeScreenshotBtn">Analyze with AI</button>
+        <button id="discardScreenshotBtn">Discard</button>
+      </div>
+      
+      <div id="loadingAnalysis" class="loading hidden"></div>
+      
+      <div id="analysisResults" class="splitView hidden">
+        <div class="leftPanel">
+          <h3>Explanation</h3>
+          <div id="explanationText"></div>
+        </div>
+        <div class="rightPanel">
+          <h3>Code Solution</h3>
+          <pre><code id="codeBlock"></code></pre>
+        </div>
+      </div>
     </div>
-
-    <div class="section">
-      <h2>Common Patterns</h2>
-      <ul>
-        <li>Two pointers / sliding window</li>
-        <li>Binary search for sorted data</li>
-        <li>BFS/DFS for graph problems</li>
-        <li>Dynamic programming for optimization</li>
-      </ul>
-    </div>
-
-    <div class="note">
-      Hotkeys:<br>
-      - Ctrl+Alt+H: Toggle visibility<br>
-      - Ctrl+Alt+Q: Quit application
+    
+    <!-- Settings Screen -->
+    <div id="settingsScreen">
+      <h2>Settings</h2>
+      
+      <div class="setting-group">
+        <label for="apiKeyInput">Gemini API Key:</label><br>
+        <input type="password" id="apiKeyInput" placeholder="Enter your API key" style="width: 100%;">
+      </div>
+      
+      <div class="setting-group">
+        <label for="modelSelect">LLM Model:</label><br>
+        <select id="modelSelect" style="width: 100%;">
+          <option value="gemini-pro-vision">Gemini Pro Vision</option>
+          <option value="gemini-ultra-vision">Gemini Ultra Vision</option>
+          <option value="claude-3-opus">Claude 3 Opus</option>
+          <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+        </select>
+      </div>
+      
+      <div class="setting-group">
+        <label for="languageSelect">Preferred Code Language:</label><br>
+        <select id="languageSelect" style="width: 100%;">
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+          <option value="cpp">C++</option>
+        </select>
+      </div>
+      
+      <div class="setting-group">
+        <label for="themeSelect">Editor Theme:</label><br>
+        <select id="themeSelect" style="width: 100%;">
+          <option value="vs-dark">Dark</option>
+          <option value="github">Light</option>
+        </select>
+      </div>
+      
+      <button id="saveSettingsBtn">Save Settings</button>
+      <div id="settingsSaved" style="color: #4CAF50; margin-top: 10px; display: none;">Settings saved successfully!</div>
     </div>
   </div>
   
   <div id="statusBar">
-    Status: <span id="statusText">Visible</span>
+    <div>Status: <span id="statusText">Visible</span></div>
+    <div id="modelInfo">Model: <span id="currentModel">Not set</span></div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const statusText = document.getElementById('statusText');
-      
-      // Listen for visibility change events from the main process
-      window.electronAPI.onVisibilityChange((visible) => {
-        statusText.textContent = visible ? 'Visible' : 'Hidden';
+    // Elements
+    const tabs = document.querySelectorAll('.tab');
+    const screens = document.querySelectorAll('#welcomeScreen, #analysisScreen, #settingsScreen');
+    const statusText = document.getElementById('statusText');
+    const currentModel = document.getElementById('currentModel');
+    const screenshotPreview = document.getElementById('screenshotPreview');
+    const screenshotActions = document.getElementById('screenshotActions');
+    const loadingAnalysis = document.getElementById('loadingAnalysis');
+    const analysisResults = document.getElementById('analysisResults');
+    const explanationText = document.getElementById('explanationText');
+    const codeBlock = document.getElementById('codeBlock');
+    
+    // Form elements
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const modelSelect = document.getElementById('modelSelect');
+    const languageSelect = document.getElementById('languageSelect');
+    const themeSelect = document.getElementById('themeSelect');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const settingsSaved = document.getElementById('settingsSaved');
+    
+    // Action buttons
+    const captureScreenshotBtn = document.getElementById('captureScreenshotBtn');
+    const analyzeScreenshotBtn = document.getElementById('analyzeScreenshotBtn');
+    const discardScreenshotBtn = document.getElementById('discardScreenshotBtn');
+    
+    // Current state
+    let currentScreenshotPath = null;
+    let settings = {
+      apiKey: '',
+      model: 'gemini-pro-vision',
+      language: 'javascript',
+      theme: 'vs-dark'
+    };
+    
+    // Tab navigation
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        const targetScreen = tab.getAttribute('data-screen');
+        screens.forEach(screen => {
+          screen.style.display = screen.id === targetScreen ? 'block' : 'none';
+        });
+        
+        // Special case for analysis screen which is a flex container
+        if (targetScreen === 'analysisScreen') {
+          document.getElementById('analysisScreen').style.display = 'flex';
+        }
       });
+    });
+    
+    // Listen for visibility change events from the main process
+    window.electronAPI.onVisibilityChange((visible) => {
+      statusText.textContent = visible ? 'Visible' : 'Hidden';
+    });
+    
+    // Handle screenshot capture
+    window.electronAPI.onScreenshotCaptured(async (imagePath) => {
+      currentScreenshotPath = imagePath;
+      
+      try {
+        // Convert the image file to data URL for display
+        const dataUrl = await window.electronAPI.readImageAsDataURL(imagePath);
+        screenshotPreview.src = dataUrl;
+        screenshotPreview.style.display = 'block';
+        screenshotActions.style.display = 'block';
+        
+        // Switch to the analysis tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tabs[1].classList.add('active');
+        screens.forEach(screen => screen.style.display = 'none');
+        document.getElementById('analysisScreen').style.display = 'flex';
+        
+      } catch (error) {
+        console.error('Failed to load screenshot:', error);
+        alert('Failed to load screenshot');
+      }
+    });
+    
+    captureScreenshotBtn.addEventListener('click', async () => {
+      await window.electronAPI.captureScreenshot();
+    });
+    
+    analyzeScreenshotBtn.addEventListener('click', async () => {
+      if (!currentScreenshotPath) {
+        alert('No screenshot to analyze');
+        return;
+      }
+      
+      // Check if API key is set
+      if (!settings.apiKey) {
+        alert('Please set your API key in the Settings tab');
+        return;
+      }
+      
+      // Show loading state
+      loadingAnalysis.classList.remove('hidden');
+      analysisResults.classList.add('hidden');
+      
+      try {
+        // Construct prompt based on preferred language
+        const prompt = `Analyze this LeetCode problem and provide a solution in ${settings.language}. Include an explanation of the approach, time and space complexity analysis.`;
+        
+        // Call the LLM API
+        const result = await window.electronAPI.analyzeWithLLM(
+          settings.apiKey,
+          settings.model,
+          currentScreenshotPath,
+          prompt
+        );
+        
+        // Display results
+        explanationText.innerHTML = result.explanation;
+        codeBlock.textContent = result.code;
+        codeBlock.className = settings.language;
+        
+        // Apply syntax highlighting
+        hljs.highlightElement(codeBlock);
+        
+        // Show results
+        loadingAnalysis.classList.add('hidden');
+        analysisResults.classList.remove('hidden');
+        
+      } catch (error) {
+        console.error('Analysis failed:', error);
+        alert('Failed to analyze image with LLM');
+        loadingAnalysis.classList.add('hidden');
+      }
+    });
+    
+    discardScreenshotBtn.addEventListener('click', () => {
+      currentScreenshotPath = null;
+      screenshotPreview.src = '';
+      screenshotPreview.style.display = 'none';
+      screenshotActions.style.display = 'none';
+      analysisResults.classList.add('hidden');
+    });
+    
+    // Settings management
+    saveSettingsBtn.addEventListener('click', async () => {
+      settings = {
+        apiKey: apiKeyInput.value,
+        model: modelSelect.value,
+        language: languageSelect.value,
+        theme: themeSelect.value
+      };
+      
+      const saved = await window.electronAPI.saveSettings(settings);
+      if (saved) {
+        settingsSaved.style.display = 'block';
+        currentModel.textContent = settings.model;
+        setTimeout(() => {
+          settingsSaved.style.display = 'none';
+        }, 2000);
+      } else {
+        alert('Failed to save settings');
+      }
+    });
+    
+    // Load settings on startup
+    async function loadSettings() {
+      try {
+        settings = await window.electronAPI.loadSettings();
+        apiKeyInput.value = settings.apiKey;
+        modelSelect.value = settings.model;
+        languageSelect.value = settings.language;
+        themeSelect.value = settings.theme;
+        currentModel.textContent = settings.model;
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
     });
   </script>
 </body>
