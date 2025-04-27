@@ -278,22 +278,26 @@
           <li><strong>Ctrl+Alt+H:</strong> Toggle visibility</li>
           <li><strong>Ctrl+Alt+S:</strong> Capture screenshot</li>
           <li><strong>Ctrl+Alt+Q:</strong> Quit application</li>
-          <li><strong>Ctrl+Alt+M:</strong> Toggle mouse interaction</li>
         </ul>
       </div>
     </div>
     
     <!-- Analysis Screen -->
     <div id="analysisScreen">
-      <h2>Problem Analysis</h2>
-      
-      <img id="screenshotPreview" alt="Screenshot Preview">
-      <div id="screenshotActions" style="display: none; margin-bottom: 15px;">
-        <button id="analyzeScreenshotBtn" class="interactive">Analyze with AI</button>
-        <button id="discardScreenshotBtn" class="interactive">Discard</button>
+      <div style="display: flex; justify-content: space-between;width: 100%;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <h2>Problem Analysis</h2>
+          
+          <div id="screenshotActions" style="display: none; margin-bottom: 15px;">
+            <button id="analyzeScreenshotBtn" class="interactive">Analyze with AI</button>
+            <button id="discardScreenshotBtn" class="interactive">Discard</button>
+          </div>
+        </div>
+        <div id="loadingAnalysis" class="loading hidden"></div>
+        <img id="screenshotPreview" alt="Screenshot Preview">
+        
       </div>
       
-      <div id="loadingAnalysis" class="loading hidden"></div>
       
       <div id="analysisResults" class="splitView hidden">
         <div class="leftPanel">
@@ -323,9 +327,9 @@
       <div class="setting-group">
         <label for="modelSelect">LLM Model:</label><br>
         <select id="modelSelect" class="interactive" style="width: 100%;">
-          <option value="gemini-pro-vision">Gemini Pro Vision</option>
-          <option value="gemini-1.5-pro-vision">Gemini 1.5 Pro Vision</option>
-          <option value="gemini-1.5-flash-vision">Gemini 1.5 Flash Vision</option>
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+          <option value="gemini-2.5-flash-preview-04-17">Gemini 2.5 Flash Preview 04-17</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
         </select>
       </div>
       
@@ -391,7 +395,7 @@
     // Current state
     let settings = {
       apiKey: '',
-      model: 'gemini-pro-vision',
+      model: 'gemini-1.5-pro',
       language: 'javascript',
       theme: 'vs-dark'
     };
@@ -402,7 +406,7 @@
         const fileSettings = await window.electronAPI.loadSettings();
         settings = {
           apiKey: fileSettings.apiKey || '',
-          model: fileSettings.model || 'gemini-pro-vision',
+          model: fileSettings.model || 'gemini-1.5-pro',
           language: fileSettings.language || 'javascript',
           theme: fileSettings.theme || 'vs-dark'
         };
@@ -421,7 +425,7 @@
         // Use default settings if loading fails
         settings = {
           apiKey: '',
-          model: 'gemini-pro-vision',
+          model: 'gemini-1.5-pro',
           language: 'javascript',
           theme: 'vs-dark'
         };

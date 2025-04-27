@@ -4,7 +4,7 @@ const fs = require('fs');
 const { execFile } = require('child_process');
 const os = require('os');
 const { v4: uuidv4 } = require('uuid');
-const { writeFile, unlink } = require('fs').promises;
+const { writeFile, unlink, readFile } = require('fs').promises;
 const GeminiAPI = require('./gemini-api');
 
 let win;
@@ -19,22 +19,27 @@ if (!fs.existsSync(tempDir)) {
 
 // Clean up temp files on startup
 function cleanupTempFiles() {
-  if (fs.existsSync(tempDir)) {
-    fs.readdirSync(tempDir).forEach(file => {
-      const filePath = path.join(tempDir, file);
+  const files = fs.readdirSync(tempDir);
+  for (const file of files) {
+    const filePath = path.join(tempDir, file);
+    try {
       fs.unlinkSync(filePath);
-    });
+      console.log(`Deleted temporary file: ${filePath}`);
+    } catch (err) {
+      console.error(`Failed to delete temporary file ${filePath}:`, err);
+    }
   }
 }
 
 function toggleOverlayVisibility() {
-  if (visible) {
-    win.hide();
-  } else {
-    win.show();
-  }
   visible = !visible;
-  win.webContents.send('visibility-changed', visible);
+  if (win) {
+    if (visible) {
+      win.show();
+    } else {
+      win.hide();
+    }
+  }
 }
 
 async function captureScreenshot() {
@@ -124,7 +129,7 @@ async function loadAppSettings() {
     // Default settings if file doesn't exist
     settings = {
       apiKey: '',
-      model: 'gemini-pro-vision',
+      model: 'gemini-1.5-pro',
       language: 'javascript',
       theme: 'vs-dark'
     };
@@ -134,7 +139,7 @@ async function loadAppSettings() {
     // Default settings if there's an error
     settings = {
       apiKey: '',
-      model: 'gemini-pro-vision',
+      model: 'gemini-1.5-pro',
       language: 'javascript',
       theme: 'vs-dark'
     };
@@ -157,7 +162,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true
     },
-    // hasShadow: false
+    hasShadow: false
   });
 
   // win.setIgnoreMouseEvents(true, { forward: true });
@@ -174,53 +179,33 @@ function createWindow() {
     await loadAppSettings();
     
     // Send the loaded settings to the renderer
-    win.webContents.send('settings-loaded', settings);
+    win.webContents.send('app-settings-loaded', settings);
     
     win.show();
-    console.log('Window is now visible');
   });
+
+  // Open the DevTools.
+  // win.webContents.openDevTools();
 }
 
 function registerHotkeys() {
-  // Register Ctrl+Alt+H to hide/show the overlay
-  const toggleSuccess = globalShortcut.register('CommandOrControl+Alt+H', () => {
-    console.log('Toggle visibility hotkey pressed');
+  globalShortcut.register('Ctrl+Alt+H', () => {
     toggleOverlayVisibility();
   });
 
-  // Register Ctrl+Alt+S to capture screenshot
-  const screenshotSuccess = globalShortcut.register('CommandOrControl+Alt+S', () => {
-    console.log('Screenshot hotkey pressed');
+  globalShortcut.register('Ctrl+Alt+S', () => {
     captureScreenshot();
   });
 
-  // Register Ctrl+Alt+Q to quit the application
-  const quitSuccess = globalShortcut.register('CommandOrControl+Alt+Q', () => {
-    console.log('Quit hotkey pressed');
+  globalShortcut.register('Ctrl+Alt+Q', () => {
     app.quit();
   });
 
-  if (!toggleSuccess || !quitSuccess || !screenshotSuccess) {
-    console.error('Hotkey registration failed');
-  } else {
-    console.log('Hotkeys registered successfully');
-  }
+  globalShortcut.register('Ctrl+Alt+M', () => {
+    // Toggle mouse events
+    win.setIgnoreMouseEvents(!win.isIgnoreMouseEvents(), { forward: true });
+  });
 }
-
-app.whenReady().then(async () => {
-  cleanupTempFiles();
-  console.log('User data path:', app.getPath('userData'));
-  createWindow();
-  registerHotkeys();
-
-  const testPath = path.join(app.getPath('userData'), 'test.json');
-  try {
-    await writeFile(testPath, JSON.stringify({ test: 'data' }, null, 2));
-    console.log('Test file written successfully:', testPath);
-  } catch (error) {
-    console.error('Failed to write test file:', error.message);
-  }
-});
 
 app.on('will-quit', () => {
   // Unregister all shortcuts when app is about to quit
@@ -240,7 +225,7 @@ ipcMain.handle('analyze-with-llm', async (event, apiKey, model, imagePath, promp
     if (!fs.existsSync(imagePath)) {
       throw new Error('Screenshot file not found');
     }
-    
+
     // Handle different model providers
     if (model.startsWith('gemini-')) {
       const geminiAPI = new GeminiAPI(apiKey);
@@ -287,25 +272,53 @@ ipcMain.handle('load-settings', async () => {
     // Return default settings if the file doesn't exist
     return {
       apiKey: '',
-      model: 'gemini-pro-vision',
+      model: 'gemini-1.5-pro',
       language: 'javascript',
       theme: 'vs-dark'
     };
   } catch (error) {
     console.error('Failed to load settings:', error);
+    // Return default settings if there's an error
+    return {
+      apiKey: '',
+      model: 'gemini-1.5-pro',
+      language: 'javascript',
+      theme: 'vs-dark'
+    };
+  }
+});
+
+ipcMain.handle('read-image-as-data-url', async (event, imagePath) => {
+  try {
+    const imageBuffer = await readFile(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+    const dataURL = `data:image/png;base64,${base64Image}`;
+    return dataURL;
+  } catch (error) {
+    console.error('Failed to read image as data URL:', error);
     throw error;
   }
 });
 
-// Prevent app from closing when all windows are closed
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
+app.whenReady().then(async () => {
+  cleanupTempFiles();
+  console.log('User data path:', app.getPath('userData'));
+  createWindow();
+  registerHotkeys();
+
+  const testPath = path.join(app.getPath('userData'), 'test.json');
+  try {
+    await writeFile(testPath, JSON.stringify({ test: 'data' }, null, 2));
+    console.log('Test file written successfully:', testPath);
+  } catch (error) {
+    console.error('Failed to write test file:', error.message);
   }
 });
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+app.on('will-quit', () => {
+  // Unregister all shortcuts when app is about to quit
+  globalShortcut.unregisterAll();
+  
+  // Clean up temp directory
+  cleanupTempFiles();
 });
