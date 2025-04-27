@@ -256,8 +256,7 @@ debug/main.o: main.cpp C:/Qt/6.9.0/mingw_64/include/QtCore/QCoreApplication \
 		C:/Qt/6.9.0/mingw_64/include/QtCore/qhash.h \
 		C:/Qt/6.9.0/mingw_64/include/QtCore/qvarlengtharray.h \
 		C:/Qt/6.9.0/mingw_64/include/QtCore/q23utility.h \
-		C:/Qt/6.9.0/mingw_64/include/QtCore/q20utility.h \
-		C:/Qt/6.9.0/mingw_64/include/QtCore/QDebug
+		C:/Qt/6.9.0/mingw_64/include/QtCore/q20utility.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\main.o main.cpp
 
 ####### Install

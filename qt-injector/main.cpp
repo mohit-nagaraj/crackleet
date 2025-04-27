@@ -1,47 +1,51 @@
 #include <QCoreApplication>
 #include <windows.h>
 #include <dwmapi.h>
-#include <QDebug>
+#include <cstdio>
 
 BOOL EnableDwmCloaking(HWND hwnd) {
-    qDebug() << "Enabling DWM cloaking...";
+    printf("Enabling DWM cloaking...\n");
     const DWORD DWMWA_CLOAK = 13;
     DWORD cloakValue = 1;
-    BOOL result = DwmSetWindowAttribute(hwnd, DWMWA_CLOAK, &cloakValue, sizeof(cloakValue)) == S_OK;
-    qDebug() << "DWM cloaking result:" << result;
-    return result;
+    HRESULT hr = DwmSetWindowAttribute(hwnd, DWMWA_CLOAK, &cloakValue, sizeof(cloakValue));
+    if (hr != S_OK) {
+        printf("DwmSetWindowAttribute failed! HRESULT: 0x%08lx\n", hr);
+        return FALSE;
+    }
+    printf("DWM cloaking result: %d\n", hr == S_OK);
+    return TRUE;
 }
 
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
 
-    qDebug() << "Starting injector...";
+    printf("Starting injector2...\n");
 
     HWND hwnd = FindWindowW(NULL, L"Secure Window 123");
     if (!hwnd) {
-        qDebug() << "Window not found!";
+        printf("Window not found!\n");
         return 1;
     }
 
-    qDebug() << "Window found. Modifying styles...";
+    printf("Window found. Modifying styles...\n");
     LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-    exStyle |= WS_EX_LAYERED | WS_EX_NOREDIRECTIONBITMAP;
+    exStyle |= WS_EX_LAYERED;
     if (!SetWindowLongPtrW(hwnd, GWL_EXSTYLE, exStyle)) {
-        qDebug() << "Failed to set window styles!";
+        printf("Failed to set window styles! Error: %ld\n", GetLastError());
     } else {
-        qDebug() << "Window styles modified successfully.";
+        printf("Window styles modified successfully.\n");
     }
 
-    if (!SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA)) {
-        qDebug() << "Failed to set layered window attributes!";
+    if (!SetLayeredWindowAttributes(hwnd, 0, 180, LWA_ALPHA)) {
+        printf("Failed to set layered window attributes!\n");
     } else {
-        qDebug() << "Layered window attributes set successfully.";
+        printf("Layered window attributes set successfully.\n");
     }
 
     if (!EnableDwmCloaking(hwnd)) {
-        qDebug() << "Failed to enable DWM cloaking!";
+        printf("Failed to enable DWM cloaking!\n");
     } else {
-        qDebug() << "DWM cloaking enabled successfully.";
+        printf("DWM cloaking enabled successfully.\n");
     }
 
     return app.exec();
