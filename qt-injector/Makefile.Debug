@@ -18,8 +18,8 @@ CFLAGS        = -fno-keep-inline-dllexport -g -Wall -Wextra -Wextra $(DEFINES)
 CXXFLAGS      = -fno-keep-inline-dllexport -g -Wall -Wextra -Wextra -fexceptions -mthreads $(DEFINES)
 INCPATH       = -I. -IC:/Qt/6.9.0/mingw_64/include -IC:/Qt/6.9.0/mingw_64/include/QtGui -IC:/Qt/6.9.0/mingw_64/include/QtCore -Idebug -I/include -IC:/Qt/6.9.0/mingw_64/mkspecs/win32-g++ 
 LINKER      =        g++
-LFLAGS        =        -static -Wl,-subsystem,console -mthreads
-LIBS        =        -ldwmapi -luser32 C:\Qt\6.9.0\mingw_64\lib\libQt6Gui.a C:\Qt\6.9.0\mingw_64\lib\libQt6Core.a   
+LFLAGS        =        -Wl,-subsystem,console -mthreads
+LIBS        =        -ldwmapi -luser32 C:\Qt\6.9.0\mingw_64\lib\libQt6Gui.a C:\Qt\6.9.0\mingw_64\lib\libQt6Core.a debug\injector_res.o   
 QMAKE         = C:\Qt\6.9.0\mingw_64\bin\qmake.exe
 DEL_FILE      = del
 CHK_DIR_EXISTS= if not exist
@@ -40,7 +40,7 @@ IDC           = idc
 IDL           = midl
 ZIP           = zip -r -9
 DEF_FILE      = 
-RES_FILE      = 
+RES_FILE      = debug\injector_res.o
 SED           = $(QMAKE) -install sed
 MOVE          = move
 
@@ -64,11 +64,14 @@ DESTDIR_TARGET = debug\injector.exe
 first: all
 all: Makefile.Debug  debug/injector.exe
 
-debug/injector.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Gui.a C:/Qt/6.9.0/mingw_64/lib/libQt6Core.a $(OBJECTS) 
+debug/injector.exe: C:/Qt/6.9.0/mingw_64/lib/libQt6Gui.a C:/Qt/6.9.0/mingw_64/lib/libQt6Core.a $(OBJECTS) debug/injector_res.o
 	$(LINKER) $(LFLAGS) -o $(DESTDIR_TARGET) $(OBJECTS) $(LIBS)
 
+debug/injector_res.o: injector.rc
+	windres -i injector.rc -o debug\injector_res.o --include-dir=. $(DEFINES)
+
 qmake: FORCE
-	@$(QMAKE) -o Makefile.Debug injector.pro "LIBS += -ldwmapi -luser32"
+	@$(QMAKE) -o Makefile.Debug injector.pro
 
 qmake_all: FORCE
 
@@ -77,6 +80,7 @@ dist:
 
 clean: compiler_clean 
 	-$(DEL_FILE) debug\main.o
+	-$(DEL_FILE) debug\injector_res.o
 
 distclean: clean 
 	-$(DEL_FILE) .qmake.stash
