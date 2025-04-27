@@ -5,6 +5,7 @@ const { execFile } = require('child_process');
 const os = require('os');
 const { v4: uuidv4 } = require('uuid');
 const { writeFile, unlink } = require('fs').promises;
+const GeminiAPI = require('./gemini-api');
 
 let win;
 let visible = true;
@@ -183,15 +184,20 @@ ipcMain.handle('capture-screenshot', async () => {
 
 ipcMain.handle('analyze-with-llm', async (event, apiKey, model, imagePath, prompt) => {
   try {
-    // Implementation for LLM analysis will be here
-    // For now, we'll return a mock response
-    const mockResponse = {
-      explanation: "This appears to be a solution to a binary search problem. The algorithm efficiently finds a target value in a sorted array by repeatedly dividing the search space in half.",
-      code: "function binarySearch(nums, target) {\n  let left = 0;\n  let right = nums.length - 1;\n\n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    if (nums[mid] === target) {\n      return mid;\n    } else if (nums[mid] < target) {\n      left = mid + 1;\n    } else {\n      right = mid - 1;\n    }\n  }\n\n  return -1;\n}",
-      complexity: "Time Complexity: O(log n), Space Complexity: O(1)"
-    };
+    if (!fs.existsSync(imagePath)) {
+      throw new Error('Screenshot file not found');
+    }
     
-    return mockResponse;
+    // Handle different model providers
+    if (model.startsWith('gemini-')) {
+      const geminiAPI = new GeminiAPI(apiKey);
+      return await geminiAPI.analyzeImage(model, imagePath, prompt);
+    } else if (model.startsWith('claude-')) {
+      // Add Claude implementation here in the future
+      throw new Error('Claude models are not yet implemented');
+    } else {
+      throw new Error(`Unsupported model: ${model}`);
+    }
   } catch (error) {
     console.error('LLM analysis failed:', error);
     throw error;
