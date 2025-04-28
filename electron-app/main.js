@@ -1,7 +1,7 @@
 const { app, BrowserWindow, globalShortcut, ipcMain, dialog, screen, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { execFile } = require('child_process');
+const { spawn } = require('child_process');
 const os = require('os');
 const { v4: uuidv4 } = require('uuid');
 const { writeFile, unlink, readFile } = require('fs').promises;
@@ -29,6 +29,39 @@ function cleanupTempFiles() {
       console.error(`Failed to delete temporary file ${filePath}:`, err);
     }
   }
+}
+
+// Add this function to launch the injector
+function launchInjector() {
+  // Determine the path to the injector
+  let injectorPath;
+
+  // Development mode - use local path
+  injectorPath = path.join(__dirname, 'injector', 'injector.exe');
+
+
+  console.log('Launching injector from:', injectorPath);
+
+  // Check if file exists
+  if (!fs.existsSync(injectorPath)) {
+    console.error('Injector executable not found at:', injectorPath);
+    return;
+  }
+
+  // Launch the injector
+  const injector = spawn(injectorPath);
+
+  injector.stdout.on('data', (data) => {
+    console.log(`Injector output: ${data}`);
+  });
+
+  injector.stderr.on('data', (data) => {
+    console.error(`Injector error: ${data}`);
+  });
+
+  injector.on('close', (code) => {
+    console.log(`Injector process exited with code ${code}`);
+  });
 }
 
 function toggleOverlayVisibility() {
@@ -182,6 +215,10 @@ function createWindow() {
     win.webContents.send('app-settings-loaded', settings);
 
     win.show();
+
+    setTimeout(() => {
+      launchInjector();
+    }, 2000);
   });
 
   // Open the DevTools.

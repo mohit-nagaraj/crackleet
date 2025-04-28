@@ -36,7 +36,15 @@
             "index.html",
             "style.css",
             "gemini-api.js",
+            "injector/**/*",
             "node_modules/**/*"
-        ]
+        ],
+        "extraResources": [
+        {
+            "from": "injector",
+            "to": "injector",
+            "filter": ["**/*"]
+        }
+    ]
     }
 }
