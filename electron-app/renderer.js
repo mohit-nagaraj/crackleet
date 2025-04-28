@@ -11,7 +11,6 @@ const analysisResults = document.getElementById('analysisResults');
 const explanationText = document.getElementById('explanationText');
 const codeBlock = document.getElementById('codeBlock');
 const complexityInfo = document.getElementById('complexityInfo');
-const copyCodeBtn = document.getElementById('copyCodeBtn');
 const interactionToggle = document.getElementById('interactionToggle');
 
 // Form elements
@@ -26,6 +25,7 @@ const settingsSaved = document.getElementById('settingsSaved');
 const captureScreenshotBtn = document.getElementById('captureScreenshotBtn');
 const analyzeScreenshotBtn = document.getElementById('analyzeScreenshotBtn');
 const discardScreenshotBtn = document.getElementById('discardScreenshotBtn');
+console.log('discardScreenshotBtn element:', discardScreenshotBtn); 
 
 // Current state
 let settings = {
@@ -234,12 +234,19 @@ tabs.forEach(tab => {
     const targetScreen = tab.getAttribute('data-screen');
     screens.forEach(screen => {
       if (screen.id === targetScreen) {
-        // Use flex display for analysis screen to maintain the column layout
-        screen.style.display = screen.id === 'analysisScreen' ? 'block' : 'block';
+        screen.style.display = 'block';
       } else {
         screen.style.display = 'none';
       }
     });
+    
+    // Hide analysis results when not on analysis screen
+    if (targetScreen !== 'analysisScreen') {
+      analysisResults.classList.add('hidden');
+    } else if (currentScreenshotPath && codeBlock.textContent) {
+      // Only show analysis results on analysis screen if we have results
+      analysisResults.classList.remove('hidden');
+    }
   });
 });
 
@@ -283,6 +290,7 @@ captureScreenshotBtn.addEventListener('click', async () => {
 });
 
 analyzeScreenshotBtn.addEventListener('click', async () => {
+  console.log('Analyze button clicked - starting analysis.');
   if (!currentScreenshotPath) {
     alert('No screenshot to analyze');
     return;
@@ -334,22 +342,22 @@ analyzeScreenshotBtn.addEventListener('click', async () => {
   }
 });
 
-// Copy code to clipboard
-copyCodeBtn.addEventListener('click', () => {
-  navigator.clipboard.writeText(codeBlock.textContent).then(() => {
-    copyCodeBtn.textContent = "Copied!";
-    setTimeout(() => {
-      copyCodeBtn.textContent = "Copy";
-    }, 2000);
-  });
-});
-
+console.log('Attempting to attach listener to discardScreenshotBtn');
 discardScreenshotBtn.addEventListener('click', () => {
+  console.log('Discard button clicked - resetting state.');
+
+  // Reset the screenshot
   currentScreenshotPath = null;
   screenshotPreview.src = '';
   screenshotPreview.style.display = 'none';
   screenshotActions.style.display = 'none';
   analysisResults.classList.add('hidden');
+  
+  // Switch back to the welcome screen
+  tabs.forEach(t => t.classList.remove('active'));
+  tabs[0].classList.add('active'); // Make the Home tab active
+  screens.forEach(screen => screen.style.display = 'none');
+  document.getElementById('welcomeScreen').style.display = 'block';
 });
 
 // Initialize with mouse events disabled by default
