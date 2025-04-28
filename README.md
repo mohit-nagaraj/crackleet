@@ -16,7 +16,7 @@ CrackLeet is an Electron-based overlay application designed to assist with codin
 - **Syntax Highlighting**: Clear code formatting with syntax highlighting
 
 ## Screenshots
-_(Add your application screenshots here)_
+![WhatsApp Image 2025-04-28 at 6 31 35 PM](https://github.com/user-attachments/assets/99d5b63c-e8a3-4eeb-b163-d744f7fd9af7)
 
 ## Quick Start
 For users who want to quickly get started with CrackLeet:
