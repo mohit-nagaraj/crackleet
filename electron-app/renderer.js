@@ -288,8 +288,7 @@ analyzeScreenshotBtn.addEventListener('click', async () => {
     return;
   }
   
-  // Check if API key is set - First check localStorage, then settings object
-  const apiKey = localStorage.getItem('apiKey') || settings.apiKey;
+  const apiKey = settings.apiKey;
   if (!apiKey) {
     alert('Please set your API key in the Settings tab');
     return;
@@ -300,9 +299,9 @@ analyzeScreenshotBtn.addEventListener('click', async () => {
   analysisResults.classList.add('hidden');
   
   try {
-    // Get language from localStorage or settings object
-    const language = localStorage.getItem('language') || settings.language;
-    const model = localStorage.getItem('model') || settings.model;
+    // Get language from settings object
+    const language = settings.language;
+    const model = settings.model;
     
     // Construct prompt based on preferred language
     const prompt = `Preferred language: ${language}`;
@@ -316,7 +315,7 @@ analyzeScreenshotBtn.addEventListener('click', async () => {
     );
     
     // Display results
-    explanationText.innerHTML = result.explanation;
+    explanationText.innerHTML = marked.parse(result.explanation);
     codeBlock.textContent = result.code;
     codeBlock.className = language;
     complexityInfo.textContent = result.complexity || "Time and Space Complexity not specified";

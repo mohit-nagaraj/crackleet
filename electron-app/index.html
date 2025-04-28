@@ -9,6 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/java.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/cpp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -47,7 +48,7 @@
     <!-- Analysis Screen -->
     <div id="analysisScreen">
       <div style="display: flex; justify-content: space-between;width: 100%;">
-      <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; flex-direction: column;">
         <h2>Problem Analysis</h2>
         <div id="screenshotActions" class="screenshot-controls" style="display: none;">
           <button id="analyzeScreenshotBtn" class="interactive">Analyze with AI</button>
@@ -71,7 +72,6 @@
         <div class="rightPanel">
           <h3>Code Solution</h3>
           <div class="code-container">
-            <button id="copyCodeBtn" class="copy-btn interactive">Copy</button>
             <pre><code id="codeBlock"></code></pre>
           </div>
         </div>
@@ -120,7 +120,6 @@
   </div>
   
   <div id="statusBar">
-    <div>Status: <span id="statusText">Visible</span></div>
     <div id="modelInfo">Model: <span id="currentModel">Not set</span></div>
     <!-- <div id="mouseStatus">Mouse: <span id="mouseStatusText">Disabled</span></div> -->
   </div>

@@ -33,10 +33,9 @@ class GeminiAPI {
                 text: `You are an expert coding interview assistant. Analyze this LeetCode problem screenshot and provide a detailed solution with explanation.
 
 I need the response in the following format:
-1. A brief summary of the problem
-2. Your solution in clean, well-commented code
-3. An brief explanation of your approach pointwise
-4. Time and space complexity analysis with explanations
+1. Your solution in clean, well-commented code
+2. An brief explanation of your approach pointwise
+3. Time and space complexity analysis direct values
 
 The preferred language is: ${language}` 
               },
@@ -136,33 +135,11 @@ The preferred language is: ${language}`
    * @returns {string} - Formatted HTML
    */
   formatExplanation(text) {
-    // Convert problem description section to HTML
-    text = text.replace(/(?:^|\n)(?:Problem:|Problem Statement:)(.*?)(?=\n\n|$)/is, 
-      (match, content) => `<h3>Problem</h3><p>${content.trim()}</p>`);
-      
-    // Convert approach/explanation section to HTML
-    text = text.replace(/(?:^|\n)(?:Approach:|Explanation:|Solution Approach:)(.*?)(?=\n\n|Time Complexity|Space Complexity|$)/is, 
-      (match, content) => `<h3>Approach</h3><p>${content.trim()}</p>`);
-      
-    // Format complexity analysis
-    text = text.replace(/(?:^|\n)Time Complexity:(.*?)(?=\n\n|Space Complexity|$)/is,
-      (match, content) => `<h3>Time Complexity</h3><p>${content.trim()}</p>`);
-      
-    text = text.replace(/(?:^|\n)Space Complexity:(.*?)(?=\n\n|$)/is,
-      (match, content) => `<h3>Space Complexity</h3><p>${content.trim()}</p>`);
-      
-    // Convert bullet points to HTML lists
-    text = text.replace(/(?:^|\n)(?:- |\* |\d+\. )(.*?)(?=\n(?:- |\* |\d+\. )|$)/g,
-      (match, content) => `<li>${content.trim()}</li>`);
-      
-    // Wrap lists in ul tags
-    if (text.includes('<li>')) {
-      text = text.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
-    }
+    // Instead of converting to HTML, just clean up the markdown a bit
+    // Remove any excessive newlines and ensure consistent formatting
+    text = text.replace(/\n{3,}/g, '\n\n');
     
-    // Preserve paragraph formatting
-    text = text.replace(/\n\n/g, '</p><p>');
-    
+    // Return the cleaned markdown text
     return text;
   }
 }
