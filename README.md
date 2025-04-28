@@ -43,7 +43,7 @@ For users who want to quickly get started with CrackLeet:
 - See [SETUP.md](SETUP.md) for detailed requirements
 
 ## License
-_(Add your license information here)_
+Refer to the [LICENSE](LICENSE) file for licensing information.
 
 ## Contributors
 - [Mohit Nagaraj](https://github.com/mohit-nagaraj) - Creator and maintainer
