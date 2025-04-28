@@ -223,11 +223,11 @@ button:hover {
 /* Area for toggling mouse interaction without having elements */
 #interactionToggle {
   position: fixed;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  bottom: 10px;
+  left: 10px;
+  border-radius: 5px;
+  font-size: 10px;
+  padding: 5px;
   background-color: rgba(97, 175, 239, 0.3);
   cursor: pointer;
   z-index: 1000;
@@ -235,7 +235,7 @@ button:hover {
   justify-content: center;
   align-items: center;
   font-weight: bold;
-  opacity: 0.5;
+  opacity: 0.7;
   transition: opacity 0.3s;
 }
 

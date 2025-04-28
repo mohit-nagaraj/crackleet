@@ -1,5 +1,5 @@
 {
-    "name": "secure-overlay",
+    "name": "secure-window",
     "version": "1.0.0",
     "main": "main.js",
     "scripts": {
@@ -7,6 +7,7 @@
         "build": "electron-builder"
     },
     "devDependencies": {
+        "electron-builder": "^26.0.12",
         "electron": "^29.0.0"
     },
     "dependencies": {
@@ -14,5 +15,28 @@
         "highlight.js": "^11.11.1",
         "marked": "^15.0.11",
         "uuid": "^11.1.0"
+    },
+    "build": {
+        "appId": "com.example.securewindow",
+        "productName": "Secure Window",
+        "mac": {
+            "category": "public.app-category.utilities",
+            "icon": "buildResources/icon.icns"
+        },
+        "win": {
+            "icon": "buildResources/icon.ico"
+        },
+        "linux": {
+            "icon": "buildResources/icon.png"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "renderer.js",
+            "index.html",
+            "style.css",
+            "gemini-api.js",
+            "node_modules/**/*"
+        ]
     }
 }
