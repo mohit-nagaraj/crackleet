@@ -200,11 +200,6 @@ function registerHotkeys() {
   globalShortcut.register('Ctrl+Alt+Q', () => {
     app.quit();
   });
-
-  globalShortcut.register('Ctrl+Alt+M', () => {
-    // Toggle mouse events
-    win.setIgnoreMouseEvents(!win.isIgnoreMouseEvents(), { forward: true });
-  });
 }
 
 app.on('will-quit', () => {

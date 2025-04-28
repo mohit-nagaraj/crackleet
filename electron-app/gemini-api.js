@@ -35,7 +35,7 @@ class GeminiAPI {
 I need the response in the following format:
 1. A brief summary of the problem
 2. Your solution in clean, well-commented code
-3. An explanation of your approach and key insights
+3. An brief explanation of your approach pointwise
 4. Time and space complexity analysis with explanations
 
 The preferred language is: ${language}` 

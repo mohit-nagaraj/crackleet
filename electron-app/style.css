@@ -1,0 +1,258 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    user-select: none;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  #dragRegion {
+    -webkit-app-region: drag;
+    background-color: rgba(20, 20, 20, 0.8);
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .tab {
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: rgba(40, 40, 40, 0.5);
+    border-radius: 4px;
+    -webkit-app-region: no-drag;
+  }
+  
+  .tab.active {
+    background-color: rgba(60, 60, 60, 0.8);
+  }
+  
+  #mainContent {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+  }
+  
+  #welcomeScreen, #settingsScreen, #analysisScreen {
+    padding: 20px;
+    background-color: rgba(40, 44, 52, 0.8);
+    border-radius: 8px;
+    margin: 10px;
+    flex-grow: 1;
+    overflow: auto;
+    display: none;
+  }
+
+  #welcomeScreen {
+    display: block;
+  }
+  
+  #screenshotPreview {
+    max-width: 100%;
+    max-height: 100px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    display: none;
+  }
+  
+  .splitView {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: auto;
+  }
+  
+  .leftPanel, .rightPanel {
+    padding: 10px;
+    overflow: auto;
+    width: 100%;
+  }
+  
+  .leftPanel {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px;
+  }
+  
+  pre {
+    margin: 0;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: rgba(30, 30, 30, 0.9);
+    overflow: auto;
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  code {
+    font-family: 'Consolas', 'Monaco', monospace;
+  }
+  
+  #statusBar {
+    background-color: rgba(30, 30, 30, 0.9);
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .setting-group {
+    margin-bottom: 20px;
+  }
+  
+  input, select, button {
+    background-color: rgba(60, 60, 60, 0.8);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 5px 0;
+  }
+  
+  button {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  button:hover {
+    background-color: rgba(80, 80, 80, 0.8);
+  }
+  
+  .hidden {
+    display: none !important;
+  }
+  
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+  }
+  
+  .loading::after {
+    content: "";
+    width: 40px;
+    height: 40px;
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    border-top: 5px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .note {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+  }
+  
+  #complexityInfo {
+    background-color: rgba(40, 40, 40, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 15px;
+    font-size: 14px;
+  }
+  
+  #explanationText h3 {
+    color: #61afef;
+    margin-top: 15px;
+    margin-bottom: 5px;
+  }
+  
+  #explanationText ul {
+    padding-left: 20px;
+  }
+  
+  #explanationText li {
+    margin-bottom: 5px;
+  }
+  
+  .copy-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 4px 8px;
+    font-size: 12px;
+    background-color: rgba(80, 80, 80, 0.7);
+  }
+  
+  .code-container {
+    position: relative;
+    max-width: 100%;
+  }
+  
+  /* Make interactive regions more obvious */
+  .interactive {
+    position: relative;
+    cursor: pointer !important;
+  }
+  
+  .interactive:hover {
+    box-shadow: 0 0 8px rgba(97, 175, 239, 0.8);
+    outline: 1px solid rgba(97, 175, 239, 0.5);
+  }
+  
+  /* Area for toggling mouse interaction without having elements */
+  #interactionToggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(97, 175, 239, 0.3);
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+  
+  #interactionToggle:hover {
+    opacity: 1;
+  }
+  
+  .mouse-active {
+    background-color: rgba(20, 250, 120, 0.3) !important;
+  }
+  
+  /* Highlight when interaction is enabled */
+  body.interaction-enabled {
+    box-shadow: inset 0 0 10px rgba(97, 175, 239, 0.5);
+  }
+
+  /* Screenshot header container */
+  .screenshot-header {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  /* Screenshot controls */
+  .screenshot-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
