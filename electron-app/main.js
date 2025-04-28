@@ -52,9 +52,9 @@ async function captureScreenshot() {
 
   try {
     // Get all screen sources with high-resolution thumbnails
-    const sources = await desktopCapturer.getSources({ 
-      types: ['screen'], 
-      thumbnailSize: { 
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: {
         width: screen.getPrimaryDisplay().size.width,
         height: screen.getPrimaryDisplay().size.height
       }
@@ -64,9 +64,9 @@ async function captureScreenshot() {
     const primaryDisplay = screen.getPrimaryDisplay();
     const source = sources.find(s => {
       // Different platforms may have different source display_id formats
-      return s.display_id === primaryDisplay.id.toString() || 
-             s.display_id === primaryDisplay.id || 
-             (sources.length === 1); // Fallback if we can't match by ID
+      return s.display_id === primaryDisplay.id.toString() ||
+        s.display_id === primaryDisplay.id ||
+        (sources.length === 1); // Fallback if we can't match by ID
     });
 
     if (!source) {
@@ -96,7 +96,7 @@ async function captureScreenshot() {
     setTimeout(() => {
       fs.access(tempFilePath, fs.constants.F_OK, (err) => {
         if (!err) {
-          fs.unlink(tempFilePath, () => {});
+          fs.unlink(tempFilePath, () => { });
         }
       });
     }, 30 * 60 * 1000); // 30 minutes
@@ -149,7 +149,7 @@ async function loadAppSettings() {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1000, 
+    width: 1000,
     height: 800,
     transparent: true,
     frame: false,
@@ -157,7 +157,7 @@ function createWindow() {
     skipTaskbar: true,
     title: "Secure Window 123",  // Must match exactly
     backgroundColor: '#00000010', // Mostly transparent
-    webPreferences: { 
+    webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true
@@ -166,7 +166,7 @@ function createWindow() {
   });
 
   // win.setIgnoreMouseEvents(true, { forward: true });
-  
+
   // ipcMain.handle('toggle-mouse-events', (event, ignore) => {
   //   win.setIgnoreMouseEvents(ignore, { forward: true });
   // });
@@ -177,15 +177,15 @@ function createWindow() {
   win.once('ready-to-show', async () => {
     // Load settings before showing the window
     await loadAppSettings();
-    
+
     // Send the loaded settings to the renderer
     win.webContents.send('app-settings-loaded', settings);
-    
+
     win.show();
   });
 
   // Open the DevTools.
-  // win.webContents.openDevTools();
+  win.webContents.openDevTools();
 }
 
 function registerHotkeys() {
@@ -205,7 +205,7 @@ function registerHotkeys() {
 app.on('will-quit', () => {
   // Unregister all shortcuts when app is about to quit
   globalShortcut.unregisterAll();
-  
+
   // Clean up temp directory
   cleanupTempFiles();
 });
@@ -313,7 +313,7 @@ app.whenReady().then(async () => {
 app.on('will-quit', () => {
   // Unregister all shortcuts when app is about to quit
   globalShortcut.unregisterAll();
-  
+
   // Clean up temp directory
   cleanupTempFiles();
 });

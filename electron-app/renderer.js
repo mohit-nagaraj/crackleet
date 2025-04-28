@@ -25,7 +25,7 @@ const settingsSaved = document.getElementById('settingsSaved');
 const captureScreenshotBtn = document.getElementById('captureScreenshotBtn');
 const analyzeScreenshotBtn = document.getElementById('analyzeScreenshotBtn');
 const discardScreenshotBtn = document.getElementById('discardScreenshotBtn');
-console.log('discardScreenshotBtn element:', discardScreenshotBtn); 
+console.log('discardScreenshotBtn element:', discardScreenshotBtn);
 
 // Current state
 let settings = {
@@ -130,12 +130,12 @@ function disableMouseInteraction() {
   if (mouseInteractionEnabled) {
     // Don't disable if we're focused on an input
     const activeElement = document.activeElement;
-    if (activeElement.tagName === 'INPUT' || 
-        activeElement.tagName === 'SELECT' || 
-        activeElement.tagName === 'TEXTAREA') {
+    if (activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'SELECT' ||
+      activeElement.tagName === 'TEXTAREA') {
       return;
     }
-    
+
     window.electronAPI.toggleMouseEvents(true);
     mouseInteractionEnabled = false;
     document.body.classList.remove('interaction-enabled');
@@ -191,7 +191,7 @@ formElements.forEach(element => {
   element.addEventListener('focus', () => {
     enableMouseInteraction();
   });
-  
+
   element.addEventListener('blur', () => {
     // Don't disable immediately to allow clicking other elements
     // This will be handled by the document click handler
@@ -202,23 +202,23 @@ formElements.forEach(element => {
 document.addEventListener('click', (e) => {
   let target = e.target;
   let isInteractiveElement = false;
-  
+
   // Check if the click was on or inside an interactive element
   while (target && target !== document) {
     if (target.classList && (
-        target.classList.contains('interactive') || 
-        target.id === 'interactionToggle' ||
-        target.tagName === 'INPUT' ||
-        target.tagName === 'SELECT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'BUTTON'
-       )) {
+      target.classList.contains('interactive') ||
+      target.id === 'interactionToggle' ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'SELECT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'BUTTON'
+    )) {
       isInteractiveElement = true;
       break;
     }
     target = target.parentNode;
   }
-  
+
   // If clicked outside interactive elements, disable mouse interaction
   if (!isInteractiveElement) {
     debouncedDisableMouseInteraction();
@@ -230,7 +230,7 @@ tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     tabs.forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    
+
     const targetScreen = tab.getAttribute('data-screen');
     screens.forEach(screen => {
       if (screen.id === targetScreen) {
@@ -239,7 +239,7 @@ tabs.forEach(tab => {
         screen.style.display = 'none';
       }
     });
-    
+
     // Hide analysis results when not on analysis screen
     if (targetScreen !== 'analysisScreen') {
       analysisResults.classList.add('hidden');
@@ -258,20 +258,20 @@ window.electronAPI.onVisibilityChange((visible) => {
 // Handle screenshot capture
 window.electronAPI.onScreenshotCaptured(async (imagePath) => {
   currentScreenshotPath = imagePath;
-  
+
   try {
     // Convert the image file to data URL for display
     const dataUrl = await window.electronAPI.readImageAsDataURL(imagePath);
     screenshotPreview.src = dataUrl;
     screenshotPreview.style.display = 'block';
     screenshotActions.style.display = 'flex';
-    
+
     // Switch to the analysis tab
     tabs.forEach(t => t.classList.remove('active'));
     tabs[1].classList.add('active');
     screens.forEach(screen => screen.style.display = 'none');
     document.getElementById('analysisScreen').style.display = 'block';
-    
+
   } catch (error) {
     console.error('Failed to load screenshot:', error);
     alert(error.message || 'Failed to load screenshot');
@@ -295,25 +295,25 @@ analyzeScreenshotBtn.addEventListener('click', async () => {
     alert('No screenshot to analyze');
     return;
   }
-  
+
   const apiKey = settings.apiKey;
   if (!apiKey) {
     alert('Please set your API key in the Settings tab');
     return;
   }
-  
+
   // Show loading state
   loadingAnalysis.classList.remove('hidden');
   analysisResults.classList.add('hidden');
-  
+
   try {
     // Get language from settings object
     const language = settings.language;
     const model = settings.model;
-    
+
     // Construct prompt based on preferred language
     const prompt = `Preferred language: ${language}`;
-    
+
     // Call the LLM API
     const result = await window.electronAPI.analyzeWithLLM(
       apiKey,
@@ -321,20 +321,20 @@ analyzeScreenshotBtn.addEventListener('click', async () => {
       currentScreenshotPath,
       prompt
     );
-    
+
     // Display results
     explanationText.innerHTML = marked.parse(result.explanation);
     codeBlock.textContent = result.code;
     codeBlock.className = language;
     complexityInfo.textContent = result.complexity || "Time and Space Complexity not specified";
-    
+
     // Apply syntax highlighting
     hljs.highlightElement(codeBlock);
-    
+
     // Show results
     loadingAnalysis.classList.add('hidden');
     analysisResults.classList.remove('hidden');
-    
+
   } catch (error) {
     console.error('Analysis failed:', error);
     alert(`Failed to analyze image: ${error.message || 'Unknown error'}`);
@@ -352,7 +352,7 @@ discardScreenshotBtn.addEventListener('click', () => {
   screenshotPreview.style.display = 'none';
   screenshotActions.style.display = 'none';
   analysisResults.classList.add('hidden');
-  
+
   // Switch back to the welcome screen
   tabs.forEach(t => t.classList.remove('active'));
   tabs[0].classList.add('active'); // Make the Home tab active
@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Briefly enable mouse interaction at startup to allow first interaction
   setTimeout(() => {
     enableMouseInteraction();
-    setTimeout(disableMouseInteraction, 1000); 
+    setTimeout(disableMouseInteraction, 1000);
   }, 500);
 });
 

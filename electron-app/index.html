@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>LeetCode Helper</title>
@@ -12,10 +13,11 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <!-- Mouse toggle button -->
-  <div id="interactionToggle" title="Toggle mouse interaction">M</div>
-  
+  <!-- <div id="interactionToggle" title="Toggle mouse interaction">M</div> -->
+
   <div id="dragRegion">
     <div>LeetCode Helper</div>
     <div class="nav-buttons">
@@ -24,17 +26,17 @@
       <div class="tab interactive" data-screen="settingsScreen">Settings</div>
     </div>
   </div>
-  
+
   <div id="mainContent">
     <!-- Welcome Screen -->
     <div id="welcomeScreen">
       <h1>LeetCode Interview Helper</h1>
-      
+
       <div class="setting-group">
         <h2>Quick Start</h2>
         <button id="captureScreenshotBtn" class="interactive">Capture Screenshot</button>
       </div>
-      
+
       <div class="note">
         <h3>Hotkeys:</h3>
         <ul>
@@ -44,81 +46,81 @@
         </ul>
       </div>
     </div>
-    
+
     <!-- Analysis Screen -->
     <div id="analysisScreen">
       <div style="display: flex; justify-content: space-between;width: 100%;">
-      <div style="display: flex; flex-direction: column;">
-        <h2>Problem Analysis</h2>
-        <div id="screenshotActions" class="screenshot-controls" style="display: none;">
-          <button id="analyzeScreenshotBtn" class="interactive">Analyze with AI</button>
-          <button id="discardScreenshotBtn" class="interactive">Restart</button>
-        </div>
-      </div>
-      <div id="loadingAnalysis" class="loading hidden"></div>
-      
-        <img id="screenshotPreview" alt="Screenshot Preview">
-        
-        
-      </div>
-    </div>
-      
-      <div id="analysisResults" class="splitView hidden">
-        <div class="leftPanel">
-          <h3>Explanation</h3>
-          <div id="explanationText"></div>
-          <div id="complexityInfo"></div>
-        </div>
-        <div class="rightPanel">
-          <h3>Code Solution</h3>
-          <div class="code-container">
-            <pre><code id="codeBlock"></code></pre>
+        <div style="display: flex; flex-direction: column;">
+          <h2>Problem Analysis</h2>
+          <div id="screenshotActions" class="screenshot-controls" style="display: none;">
+            <button id="analyzeScreenshotBtn" class="interactive">Analyze with AI</button>
+            <button id="discardScreenshotBtn" class="interactive">Restart</button>
           </div>
         </div>
+        <div id="loadingAnalysis" class="loading hidden"></div>
+
+        <img id="screenshotPreview" alt="Screenshot Preview">
+
+
       </div>
     </div>
-    
-    <!-- Settings Screen -->
-    <div id="settingsScreen">
-      <h2>Settings</h2>
-      
-      <div class="setting-group">
-        <label for="apiKeyInput">Gemini API Key:</label><br>
-        <input type="password" id="apiKeyInput" class="interactive" placeholder="Enter your API key" style="width: 100%;">
+
+    <div id="analysisResults" class="splitView hidden">
+      <div class="leftPanel">
+        <h3>Explanation</h3>
+        <div id="explanationText"></div>
+        <div id="complexityInfo"></div>
       </div>
-      
-      <div class="setting-group">
-        <label for="modelSelect">LLM Model:</label><br>
-        <select id="modelSelect" class="interactive" style="width: 100%;">
-          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-          <option value="gemini-2.5-flash-preview-04-17">Gemini 2.5 Flash Preview 04-17</option>
-          <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-        </select>
+      <div class="rightPanel">
+        <h3>Code Solution</h3>
+        <div class="code-container">
+          <pre><code id="codeBlock"></code></pre>
+        </div>
       </div>
-      
-      <div class="setting-group">
-        <label for="languageSelect">Preferred Code Language:</label><br>
-        <select id="languageSelect" class="interactive" style="width: 100%;">
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="java">Java</option>
-          <option value="cpp">C++</option>
-        </select>
-      </div>
-      
-      <div class="setting-group">
-        <label for="themeSelect">Editor Theme:</label><br>
-        <select id="themeSelect" class="interactive" style="width: 100%;">
-          <option value="vs-dark">Dark</option>
-          <option value="github">Light</option>
-        </select>
-      </div>
-      
-      <button id="saveSettingsBtn" class="interactive">Save Settings</button>
-      <div id="settingsSaved" style="color: #4CAF50; margin-top: 10px; display: none;">Settings saved successfully!</div>
     </div>
   </div>
-  
+
+  <!-- Settings Screen -->
+  <div id="settingsScreen">
+    <h2>Settings</h2>
+
+    <div class="setting-group">
+      <label for="apiKeyInput">Gemini API Key:</label><br>
+      <input type="password" id="apiKeyInput" class="interactive" placeholder="Enter your API key" style="width: 100%;">
+    </div>
+
+    <div class="setting-group">
+      <label for="modelSelect">LLM Model:</label><br>
+      <select id="modelSelect" class="interactive" style="width: 100%;">
+        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+        <option value="gemini-2.5-flash-preview-04-17">Gemini 2.5 Flash Preview 04-17</option>
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label for="languageSelect">Preferred Code Language:</label><br>
+      <select id="languageSelect" class="interactive" style="width: 100%;">
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="java">Java</option>
+        <option value="cpp">C++</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label for="themeSelect">Editor Theme:</label><br>
+      <select id="themeSelect" class="interactive" style="width: 100%;">
+        <option value="vs-dark">Dark</option>
+        <option value="github">Light</option>
+      </select>
+    </div>
+
+    <button id="saveSettingsBtn" class="interactive">Save Settings</button>
+    <div id="settingsSaved" style="color: #4CAF50; margin-top: 10px; display: none;">Settings saved successfully!</div>
+  </div>
+  </div>
+
   <div id="statusBar">
     <div id="modelInfo">Model: <span id="currentModel">Not set</span></div>
     <!-- <div id="mouseStatus">Mouse: <span id="mouseStatusText">Disabled</span></div> -->
@@ -126,4 +128,5 @@
 
   <script src="renderer.js"></script>
 </body>
+
 </html>
