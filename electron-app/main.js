@@ -225,6 +225,7 @@ function createWindow() {
   // win.webContents.openDevTools();
 }
 
+
 function registerHotkeys() {
   globalShortcut.register('Ctrl+Alt+H', () => {
     toggleOverlayVisibility();
@@ -232,6 +233,18 @@ function registerHotkeys() {
 
   globalShortcut.register('Ctrl+Alt+S', () => {
     captureScreenshot();
+  });
+
+  globalShortcut.register('Ctrl+Alt+A', () => {
+    if (win) win.webContents.send('trigger-analyze');
+  });
+
+  globalShortcut.register('Ctrl+Alt+D', () => {
+    if (win) win.webContents.send('trigger-discard');
+  });
+
+  globalShortcut.register('Ctrl+Alt+T', () => {
+    if (win) win.webContents.send('trigger-cycle-tab');
   });
 
   globalShortcut.register('Ctrl+Alt+Q', () => {

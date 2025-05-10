@@ -162,21 +162,6 @@ interactionToggle.addEventListener('click', (e) => {
   toggleMouseInteraction();
 });
 
-// Add global keyboard shortcut for toggling mouse interaction
-document.addEventListener('keydown', (e) => {
-  // Ctrl+Alt+M
-  if (e.ctrlKey && e.altKey && e.key === 'm') {
-    toggleMouseInteraction();
-  }
-});
-
-// Add global keyboard shortcut for toggling mouse interaction
-document.addEventListener('keydown', (e) => {
-  // Ctrl+Shift+M
-  if (e.ctrlKey && e.shiftKey && e.key === 'm') {
-    toggleMouseInteraction();
-  }
-});
 
 // Function to switch to a specific tab
 function switchToTab(tabIndex) {
