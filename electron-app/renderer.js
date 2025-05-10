@@ -162,7 +162,6 @@ interactionToggle.addEventListener('click', (e) => {
   toggleMouseInteraction();
 });
 
-
 // Function to switch to a specific tab
 function switchToTab(tabIndex) {
   // Ensure the index is within bounds
@@ -198,12 +197,15 @@ function switchToTab(tabIndex) {
     // Only show analysis results on analysis screen if we have results
     analysisResults.classList.remove('hidden');
   }
+
+  console.log(`Switched to tab: ${targetScreen} (index: ${tabIndex})`);
 }
 
 // Function to cycle through tabs
 function cycleToNextTab() {
   const nextTabIndex = (currentTabIndex + 1) % tabs.length;
   switchToTab(nextTabIndex);
+  console.log(`Cycled to next tab, index: ${nextTabIndex}`);
 }
 
 // Tab navigation (click handling)
@@ -295,8 +297,12 @@ function discardCurrentScreenshot() {
   screenshotActions.style.display = 'none';
   analysisResults.classList.add('hidden');
 
-  // Switch back to the welcome screen
-  switchToTab(0); // Home tab
+  // Clear code and explanation
+  codeBlock.textContent = '';
+  explanationText.innerHTML = '';
+  complexityInfo.textContent = '';
+
+  console.log('Screenshot discarded, state reset.');
 }
 
 // Add click event listeners to buttons
@@ -324,20 +330,44 @@ window.electronAPI.onScreenshotCaptured(async (imagePath) => {
   }
 });
 
-// Add global keyboard shortcuts
+// Register IPC handlers for hotkey triggers from main process
+window.electronAPI.onTriggerAnalyze(() => {
+  console.log('Analyze hotkey triggered from main process');
+  analyzeCurrentScreenshot();
+});
+
+window.electronAPI.onTriggerDiscard(() => {
+  console.log('Discard hotkey triggered from main process');
+  discardCurrentScreenshot();
+});
+
+window.electronAPI.onTriggerCycleTab(() => {
+  console.log('Cycle tab hotkey triggered from main process');
+  cycleToNextTab();
+});
+
+// Add global keyboard shortcuts (handled in renderer as well for redundancy)
 document.addEventListener('keydown', (e) => {
+  console.log(`Key pressed: ${e.key}, Ctrl: ${e.ctrlKey}, Alt: ${e.altKey}`);
+
   // Ctrl+Alt+A: Analyze current screenshot with AI
   if (e.ctrlKey && e.altKey && e.key === 'a') {
+    console.log('Analyze hotkey detected in renderer');
+    e.preventDefault();
     analyzeCurrentScreenshot();
   }
   
   // Ctrl+Alt+D: Discard current screenshot
   if (e.ctrlKey && e.altKey && e.key === 'd') {
+    console.log('Discard hotkey detected in renderer');
+    e.preventDefault();
     discardCurrentScreenshot();
   }
   
   // Ctrl+Alt+T: Cycle through tabs
   if (e.ctrlKey && e.altKey && e.key === 't') {
+    console.log('Cycle tab hotkey detected in renderer');
+    e.preventDefault();
     cycleToNextTab();
   }
 });

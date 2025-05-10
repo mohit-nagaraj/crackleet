@@ -193,7 +193,8 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      devTools: true // Enable dev tools for debugging
     },
     hasShadow: false
   });
@@ -221,35 +222,69 @@ function createWindow() {
     }, 2000);
   });
 
-  // Open the DevTools.
+  // Open DevTools for debugging
   // win.webContents.openDevTools();
 }
 
+// Trigger analyze function in renderer
+function triggerAnalyze() {
+  console.log('Main process: triggering analyze');
+  if (win && win.webContents) {
+    win.webContents.send('trigger-analyze');
+  }
+}
+
+// Trigger discard function in renderer
+function triggerDiscard() {
+  console.log('Main process: triggering discard');
+  if (win && win.webContents) {
+    win.webContents.send('trigger-discard');
+  }
+}
+
+// Trigger cycle tab function in renderer
+function triggerCycleTab() {
+  console.log('Main process: triggering cycle tab');
+  if (win && win.webContents) {
+    win.webContents.send('trigger-cycle-tab');
+  }
+}
 
 function registerHotkeys() {
-  globalShortcut.register('Ctrl+Alt+H', () => {
+  // Unregister any existing shortcuts to prevent duplicates
+  globalShortcut.unregisterAll();
+
+  globalShortcut.register('CommandOrControl+Alt+H', () => {
+    console.log('Toggle visibility hotkey triggered');
     toggleOverlayVisibility();
   });
 
-  globalShortcut.register('Ctrl+Alt+S', () => {
+  globalShortcut.register('CommandOrControl+Alt+S', () => {
+    console.log('Capture screenshot hotkey triggered');
     captureScreenshot();
   });
 
-  globalShortcut.register('Ctrl+Alt+A', () => {
-    if (win) win.webContents.send('trigger-analyze');
+  globalShortcut.register('CommandOrControl+Alt+A', () => {
+    console.log('Analyze hotkey triggered in main process');
+    triggerAnalyze();
   });
 
-  globalShortcut.register('Ctrl+Alt+D', () => {
-    if (win) win.webContents.send('trigger-discard');
+  globalShortcut.register('CommandOrControl+Alt+D', () => {
+    console.log('Discard hotkey triggered in main process');
+    triggerDiscard();
   });
 
-  globalShortcut.register('Ctrl+Alt+T', () => {
-    if (win) win.webContents.send('trigger-cycle-tab');
+  globalShortcut.register('CommandOrControl+Alt+T', () => {
+    console.log('Cycle tab hotkey triggered in main process');
+    triggerCycleTab();
   });
 
-  globalShortcut.register('Ctrl+Alt+Q', () => {
+  globalShortcut.register('CommandOrControl+Alt+Q', () => {
     app.quit();
   });
+
+  // Log registered shortcuts
+  console.log('Hotkeys registered:', globalShortcut.isRegistered('CommandOrControl+Alt+A') ? 'success' : 'failed');
 }
 
 app.on('will-quit', () => {
