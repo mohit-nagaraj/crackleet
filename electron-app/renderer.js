@@ -36,6 +36,7 @@ let settings = {
 };
 
 let currentScreenshotPath = null;
+let currentTabIndex = 0; // Track the current tab index for cycling
 
 // Load settings from the file system on startup
 async function loadSetting() {
@@ -177,76 +178,53 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Auto-enable mouse interaction when hovering over interactive elements
-const interactiveElements = document.querySelectorAll('.interactive');
-interactiveElements.forEach(element => {
-  element.addEventListener('mouseenter', () => {
-    enableMouseInteraction();
-  });
-});
-
-// Handle focus events for form elements
-const formElements = document.querySelectorAll('input, select, textarea');
-formElements.forEach(element => {
-  element.addEventListener('focus', () => {
-    enableMouseInteraction();
-  });
-
-  element.addEventListener('blur', () => {
-    // Don't disable immediately to allow clicking other elements
-    // This will be handled by the document click handler
-  });
-});
-
-// Disable mouse interaction when clicking outside interactive elements
-document.addEventListener('click', (e) => {
-  let target = e.target;
-  let isInteractiveElement = false;
-
-  // Check if the click was on or inside an interactive element
-  while (target && target !== document) {
-    if (target.classList && (
-      target.classList.contains('interactive') ||
-      target.id === 'interactionToggle' ||
-      target.tagName === 'INPUT' ||
-      target.tagName === 'SELECT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.tagName === 'BUTTON'
-    )) {
-      isInteractiveElement = true;
-      break;
+// Function to switch to a specific tab
+function switchToTab(tabIndex) {
+  // Ensure the index is within bounds
+  if (tabIndex < 0 || tabIndex >= tabs.length) {
+    return;
+  }
+  
+  currentTabIndex = tabIndex;
+  
+  // Activate the selected tab
+  tabs.forEach((t, i) => {
+    if (i === tabIndex) {
+      t.classList.add('active');
+    } else {
+      t.classList.remove('active');
     }
-    target = target.parentNode;
-  }
+  });
 
-  // If clicked outside interactive elements, disable mouse interaction
-  if (!isInteractiveElement) {
-    debouncedDisableMouseInteraction();
-  }
-});
+  // Show the corresponding screen
+  const targetScreen = tabs[tabIndex].getAttribute('data-screen');
+  screens.forEach(screen => {
+    if (screen.id === targetScreen) {
+      screen.style.display = 'block';
+    } else {
+      screen.style.display = 'none';
+    }
+  });
 
-// Tab navigation
-tabs.forEach(tab => {
+  // Hide analysis results when not on analysis screen
+  if (targetScreen !== 'analysisScreen') {
+    analysisResults.classList.add('hidden');
+  } else if (currentScreenshotPath && codeBlock.textContent) {
+    // Only show analysis results on analysis screen if we have results
+    analysisResults.classList.remove('hidden');
+  }
+}
+
+// Function to cycle through tabs
+function cycleToNextTab() {
+  const nextTabIndex = (currentTabIndex + 1) % tabs.length;
+  switchToTab(nextTabIndex);
+}
+
+// Tab navigation (click handling)
+tabs.forEach((tab, index) => {
   tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-
-    const targetScreen = tab.getAttribute('data-screen');
-    screens.forEach(screen => {
-      if (screen.id === targetScreen) {
-        screen.style.display = 'block';
-      } else {
-        screen.style.display = 'none';
-      }
-    });
-
-    // Hide analysis results when not on analysis screen
-    if (targetScreen !== 'analysisScreen') {
-      analysisResults.classList.add('hidden');
-    } else if (currentScreenshotPath && codeBlock.textContent) {
-      // Only show analysis results on analysis screen if we have results
-      analysisResults.classList.remove('hidden');
-    }
+    switchToTab(index);
   });
 });
 
@@ -255,30 +233,8 @@ window.electronAPI.onVisibilityChange((visible) => {
   statusText.textContent = visible ? 'Visible' : 'Hidden';
 });
 
-// Handle screenshot capture
-window.electronAPI.onScreenshotCaptured(async (imagePath) => {
-  currentScreenshotPath = imagePath;
-
-  try {
-    // Convert the image file to data URL for display
-    const dataUrl = await window.electronAPI.readImageAsDataURL(imagePath);
-    screenshotPreview.src = dataUrl;
-    screenshotPreview.style.display = 'block';
-    screenshotActions.style.display = 'flex';
-
-    // Switch to the analysis tab
-    tabs.forEach(t => t.classList.remove('active'));
-    tabs[1].classList.add('active');
-    screens.forEach(screen => screen.style.display = 'none');
-    document.getElementById('analysisScreen').style.display = 'block';
-
-  } catch (error) {
-    console.error('Failed to load screenshot:', error);
-    alert(error.message || 'Failed to load screenshot');
-  }
-});
-
-captureScreenshotBtn.addEventListener('click', async () => {
+// Function to handle screenshot capture
+async function captureNewScreenshot() {
   // Temporarily disable mouse events during the screenshot process
   const wasEnabled = mouseInteractionEnabled;
   disableMouseInteraction();
@@ -287,10 +243,11 @@ captureScreenshotBtn.addEventListener('click', async () => {
   if (wasEnabled) {
     setTimeout(enableMouseInteraction, 500);
   }
-});
+}
 
-analyzeScreenshotBtn.addEventListener('click', async () => {
-  console.log('Analyze button clicked - starting analysis.');
+// Function to analyze the current screenshot
+async function analyzeCurrentScreenshot() {
+  console.log('Analyze function called - starting analysis.');
   if (!currentScreenshotPath) {
     alert('No screenshot to analyze');
     return;
@@ -340,11 +297,11 @@ analyzeScreenshotBtn.addEventListener('click', async () => {
     alert(`Failed to analyze image: ${error.message || 'Unknown error'}`);
     loadingAnalysis.classList.add('hidden');
   }
-});
+}
 
-console.log('Attempting to attach listener to discardScreenshotBtn');
-discardScreenshotBtn.addEventListener('click', () => {
-  console.log('Discard button clicked - resetting state.');
+// Function to discard the current screenshot
+function discardCurrentScreenshot() {
+  console.log('Discard function called - resetting state.');
 
   // Reset the screenshot
   currentScreenshotPath = null;
@@ -354,10 +311,98 @@ discardScreenshotBtn.addEventListener('click', () => {
   analysisResults.classList.add('hidden');
 
   // Switch back to the welcome screen
-  tabs.forEach(t => t.classList.remove('active'));
-  tabs[0].classList.add('active'); // Make the Home tab active
-  screens.forEach(screen => screen.style.display = 'none');
-  document.getElementById('welcomeScreen').style.display = 'block';
+  switchToTab(0); // Home tab
+}
+
+// Add click event listeners to buttons
+captureScreenshotBtn.addEventListener('click', captureNewScreenshot);
+analyzeScreenshotBtn.addEventListener('click', analyzeCurrentScreenshot);
+discardScreenshotBtn.addEventListener('click', discardCurrentScreenshot);
+
+// Handle screenshot capture
+window.electronAPI.onScreenshotCaptured(async (imagePath) => {
+  currentScreenshotPath = imagePath;
+
+  try {
+    // Convert the image file to data URL for display
+    const dataUrl = await window.electronAPI.readImageAsDataURL(imagePath);
+    screenshotPreview.src = dataUrl;
+    screenshotPreview.style.display = 'block';
+    screenshotActions.style.display = 'flex';
+
+    // Switch to the analysis tab
+    switchToTab(1); // Analysis tab
+
+  } catch (error) {
+    console.error('Failed to load screenshot:', error);
+    alert(error.message || 'Failed to load screenshot');
+  }
+});
+
+// Add global keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Ctrl+Alt+A: Analyze current screenshot with AI
+  if (e.ctrlKey && e.altKey && e.key === 'a') {
+    analyzeCurrentScreenshot();
+  }
+  
+  // Ctrl+Alt+D: Discard current screenshot
+  if (e.ctrlKey && e.altKey && e.key === 'd') {
+    discardCurrentScreenshot();
+  }
+  
+  // Ctrl+Alt+T: Cycle through tabs
+  if (e.ctrlKey && e.altKey && e.key === 't') {
+    cycleToNextTab();
+  }
+});
+
+// Auto-enable mouse interaction when hovering over interactive elements
+const interactiveElements = document.querySelectorAll('.interactive');
+interactiveElements.forEach(element => {
+  element.addEventListener('mouseenter', () => {
+    enableMouseInteraction();
+  });
+});
+
+// Handle focus events for form elements
+const formElements = document.querySelectorAll('input, select, textarea');
+formElements.forEach(element => {
+  element.addEventListener('focus', () => {
+    enableMouseInteraction();
+  });
+
+  element.addEventListener('blur', () => {
+    // Don't disable immediately to allow clicking other elements
+    // This will be handled by the document click handler
+  });
+});
+
+// Disable mouse interaction when clicking outside interactive elements
+document.addEventListener('click', (e) => {
+  let target = e.target;
+  let isInteractiveElement = false;
+
+  // Check if the click was on or inside an interactive element
+  while (target && target !== document) {
+    if (target.classList && (
+      target.classList.contains('interactive') ||
+      target.id === 'interactionToggle' ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'SELECT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'BUTTON'
+    )) {
+      isInteractiveElement = true;
+      break;
+    }
+    target = target.parentNode;
+  }
+
+  // If clicked outside interactive elements, disable mouse interaction
+  if (!isInteractiveElement) {
+    debouncedDisableMouseInteraction();
+  }
 });
 
 // Initialize with mouse events disabled by default
