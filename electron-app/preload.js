@@ -31,5 +31,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       console.log('Preload: Received trigger-cycle-tab event');
       callback();
     });
+  },
+  onScreenshotAnalyzed: (callback) => {
+    ipcRenderer.on('screenshot-analyzed', (_, result) => callback(result));
   }
 });

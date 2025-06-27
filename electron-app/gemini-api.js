@@ -30,12 +30,12 @@ class GeminiAPI {
           {
             parts: [
               { 
-                text: `You are an expert coding interview assistant. Analyze this LeetCode problem screenshot and provide a detailed solution with explanation.
-
-I need the response in the following format:
-1. Your solution in clean, well-commented code
-2. An brief explanation of your approach pointwise
-3. Time and space complexity analysis direct values
+                text: `You are an interview assistant. Analyze the screenshot to identify the question. 
+If it is a multiple-choice question, indicate which option you believe is correct option only (could be multiple choice answer). Use web search if necessary.
+If it is a coding question, provide:
+1. A detailed solution in clean, well-commented code  
+2. A brief explanation of your approach pointwise  
+3. Direct time and space complexity analysis  
 
 The preferred language is: ${language}` 
               },

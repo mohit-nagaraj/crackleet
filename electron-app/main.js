@@ -162,7 +162,7 @@ async function loadAppSettings() {
     // Default settings if file doesn't exist
     settings = {
       apiKey: '',
-      model: 'gemini-1.5-pro',
+      model: 'gemini-2.0-flash',
       language: 'javascript',
       theme: 'vs-dark'
     };
@@ -199,7 +199,7 @@ function createWindow() {
     hasShadow: false
   });
 
-  // win.setIgnoreMouseEvents(true, { forward: true });
+  win.setIgnoreMouseEvents(true, { forward: true });
 
   // ipcMain.handle('toggle-mouse-events', (event, ignore) => {
   //   win.setIgnoreMouseEvents(ignore, { forward: true });
@@ -259,9 +259,32 @@ function registerHotkeys() {
     toggleOverlayVisibility();
   });
 
-  globalShortcut.register('CommandOrControl+Alt+S', () => {
+  globalShortcut.register('CommandOrControl+Alt+S', async () => {
     console.log('Capture screenshot hotkey triggered');
-    captureScreenshot();
+    const screenshotPath = await captureScreenshot();
+    if (screenshotPath) {
+      // Load settings (apiKey, model, language)
+      if (!settings) {
+        await loadAppSettings();
+      }
+      const apiKey = settings?.apiKey || 'API_KEY';
+      const model = settings?.model || 'gemini-2.5-flash-preview-04-17';
+      const language = settings?.language || 'javascript';
+      if (apiKey && model) {
+        try {
+          const prompt = `Preferred language: ${language}`;
+          const geminiAPI = new GeminiAPI(apiKey);
+          const analysisResult = await geminiAPI.analyzeImage(model, screenshotPath, prompt);
+          // Send result to renderer
+          win.webContents.send('screenshot-analyzed', analysisResult);
+        } catch (err) {
+          console.error('Gemini analysis failed:', err);
+          win.webContents.send('screenshot-analyzed', { error: err.message });
+        }
+      } else {
+        win.webContents.send('screenshot-analyzed', { error: 'Missing Gemini API key or model in settings.' });
+      }
+    }
   });
 
   globalShortcut.register('CommandOrControl+Alt+A', () => {

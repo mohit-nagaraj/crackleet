@@ -336,6 +336,28 @@ window.electronAPI.onTriggerAnalyze(() => {
   analyzeCurrentScreenshot();
 });
 
+// ... existing code ...
+window.electronAPI.onScreenshotAnalyzed((result) => {
+  // Show analysis tab
+  switchToTab(1); // Analysis tab
+  loadingAnalysis.classList.add('hidden');
+  analysisResults.classList.remove('hidden');
+
+  if (result.error) {
+    explanationText.innerHTML = `<span style='color:red;'>${result.error}</span>`;
+    codeBlock.textContent = '';
+    complexityInfo.textContent = '';
+    return;
+  }
+
+  explanationText.innerHTML = marked.parse(result.explanation || '');
+  codeBlock.textContent = result.code || '';
+  codeBlock.className = settings.language;
+  complexityInfo.textContent = result.complexity || 'Time and Space Complexity not specified';
+  hljs.highlightElement(codeBlock);
+});
+// ... existing code ...
+
 window.electronAPI.onTriggerDiscard(() => {
   console.log('Discard hotkey triggered from main process');
   discardCurrentScreenshot();
