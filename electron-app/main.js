@@ -217,9 +217,9 @@ function createWindow() {
 
     win.show();
 
-    setTimeout(() => {
-      launchInjector();
-    }, 2000);
+    // setTimeout(() => {
+    //   launchInjector();
+    // }, 2000);
   });
 
   // Open DevTools for debugging
