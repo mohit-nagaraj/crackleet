@@ -118,7 +118,7 @@ let mouseInteractionEnabled = false;
 // Function to enable mouse interaction
 function enableMouseInteraction() {
   if (!mouseInteractionEnabled) {
-    window.electronAPI.toggleMouseEvents(false);
+    
     mouseInteractionEnabled = true;
     document.body.classList.add('interaction-enabled');
     if (mouseStatusText) mouseStatusText.textContent = 'Enabled';
@@ -137,7 +137,7 @@ function disableMouseInteraction() {
       return;
     }
 
-    window.electronAPI.toggleMouseEvents(true);
+    
     mouseInteractionEnabled = false;
     document.body.classList.remove('interaction-enabled');
     if (mouseStatusText) mouseStatusText.textContent = 'Disabled';
@@ -182,6 +182,7 @@ function switchToTab(tabIndex) {
 
   // Show the corresponding screen
   const targetScreen = tabs[tabIndex].getAttribute('data-screen');
+  window.electronAPI.tabChanged(targetScreen);
   screens.forEach(screen => {
     if (screen.id === targetScreen) {
       screen.style.display = 'block';
@@ -442,8 +443,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Initialize with mouse events disabled by default
-window.electronAPI.toggleMouseEvents(true);
+
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
