@@ -201,9 +201,17 @@ function createWindow() {
 
   win.setIgnoreMouseEvents(true, { forward: true });
 
-  // ipcMain.handle('toggle-mouse-events', (event, ignore) => {
-  //   win.setIgnoreMouseEvents(ignore, { forward: true });
-  // });
+
+  
+  ipcMain.on('tab-changed', (event, tabId) => {
+    if (win) {
+      if (tabId === 'settingsScreen') {
+        win.setIgnoreMouseEvents(false);
+      } else {
+        win.setIgnoreMouseEvents(true, { forward: true });
+      }
+    }
+  });
 
   win.setContentProtection(true);
   win.loadFile('index.html');

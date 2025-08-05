@@ -3,7 +3,6 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   loadSettings: () => ipcRenderer.invoke('load-settings'),
-  toggleMouseEvents: (enable) => ipcRenderer.send('toggle-mouse-events', enable),
   captureScreenshot: () => ipcRenderer.invoke('capture-screenshot'),
   onVisibilityChange: (callback) => {
     ipcRenderer.on('visibility-change', (_, visible) => callback(visible));
@@ -34,5 +33,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onScreenshotAnalyzed: (callback) => {
     ipcRenderer.on('screenshot-analyzed', (_, result) => callback(result));
-  }
+  },
+  tabChanged: (tabId) => ipcRenderer.send('tab-changed', tabId)
 });
